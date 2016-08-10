@@ -6,14 +6,14 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "axios": "^0.13.1",
     "body-parser": "~1.15.1",
     "cloudinary": "^1.4.1",
+    "connect-multiparty": "^2.0.0",
     "cookie-parser": "~1.4.3",
     "debug": "~2.2.0",
     "express": "~4.13.4",
-    "hbs": "~4.0.0",
     "morgan": "~1.7.0",
-    "node-sass-middleware": "0.8.0",
     "serve-favicon": "~2.3.0"
   }
 }
