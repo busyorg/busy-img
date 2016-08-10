@@ -7,16 +7,29 @@ var cloudinary = require('cloudinary'),
   http = require('http');
 
 router.get('/@:username', function(req, res, next) {
+  var isEmpty = false;
   var username = req.params.username;
-  var url = 'http://res.cloudinary.com/demo/image/upload/w_0.4/sample.jpg';
-  url = cloudinary.url('@' + username, {width: 128, height: 128, crop: 'fill'});
+  var url = cloudinary.url('@' + username, {width: 128, height: 128, crop: 'fill'});
   http.get(url, function(response) {
     if (response.statusCode === 200) {
-      res.setHeader('Content-Type', response.headers['content-type']);
       return response.pipe(res);
+    } else {
+      isEmpty = true;
+      var url = cloudinary.url('@busy', {width: 128, height: 128, crop: 'fill'});
+      http.get(url, function(empty) {
+        if (empty.statusCode === 200) {
+          return empty.pipe(res);
+        }
+        empty.resume();
+        res.setHeader('Content-Type', empty.headers['content-type']);
+        res.sendStatus(empty.statusCode);
+      });
     }
-    response.resume();
-    res.sendStatus(response.statusCode);
+    if (!isEmpty) {
+      response.resume();
+      res.setHeader('Content-Type', response.headers['content-type']);
+      res.sendStatus(response.statusCode);
+    }
   });
 });
 
