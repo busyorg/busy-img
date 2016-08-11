@@ -44,5 +44,32 @@ router.post('/@:username', multipartMiddleware, function(req, res, next) {
   res.json();
 });
 
+router.get('/@:username/cover', function(req, res, next) {
+  var isEmpty = false;
+  var username = req.params.username;
+  var url = cloudinary.url('@' + username + '/cover', {width: 128, height: 128, crop: 'fill'});
+  http.get(url, function(response) {
+    if (response.statusCode === 200) {
+      return response.pipe(res);
+    } else {
+      isEmpty = true;
+      var url = cloudinary.url('@busy/cover', {width: 128, height: 128, crop: 'fill'});
+      http.get(url, function(empty) {
+        if (empty.statusCode === 200) {
+          return empty.pipe(res);
+        }
+        empty.resume();
+        res.setHeader('Content-Type', empty.headers['content-type']);
+        res.sendStatus(empty.statusCode);
+      });
+    }
+    if (!isEmpty) {
+      response.resume();
+      res.setHeader('Content-Type', response.headers['content-type']);
+      res.sendStatus(response.statusCode);
+    }
+  });
+});
+
 
 module.exports = router;
