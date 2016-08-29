@@ -4,17 +4,34 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
+var hbs = require('express-hbs');
 var cloudinary = require('cloudinary');
 
 var routes = require('./routes/index');
 
 var app = express();
 
+var isDev = app.get('env') === 'development';
+if (isDev)
+  require('./scripts/webpack')(app);
+
 // uncomment after placing your favicon in /public
 // app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.engine('hbs', hbs.express4({
+  partialsDir: __dirname + '/views/partials',
+  defaultLayout: __dirname + '/views/layout.hbs'
+}));
+app.set('view engine', 'hbs');
+app.set('views', __dirname + '/views');
+
+app.get('/', function (req, res) {
+  res.render('index', {
+    title: 'Busy Img'
+  });
+});
 
 app.use('/', routes);
 
@@ -29,7 +46,7 @@ app.use(function(req, res, next) {
 
 // development error handler
 // will print stacktrace
-if (app.get('env') === 'development') {
+if (isDev) {
   app.use(function(err, req, res, next) {
     res.status(err.status || 500);
     res.json(['error', {
