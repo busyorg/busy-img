@@ -15,16 +15,15 @@ router.get('/@:username', function(req, res, next) {
       return response.pipe(res);
     } else {
       isEmpty = true;
-      res.render('index');
-      // var url = cloudinary.url('@busy', {width: 128, height: 128, crop: 'fill'});
-      // http.get(url, function(empty) {
-      //   if (empty.statusCode === 200) {
-      //     return empty.pipe(res);
-      //   }
-      //   empty.resume();
-      //   res.setHeader('Content-Type', empty.headers['content-type']);
-      //   res.sendStatus(empty.statusCode);
-      // });
+      var url = cloudinary.url('@busy', {width: 128, height: 128, crop: 'fill'});
+      http.get(url, function(empty) {
+        if (empty.statusCode === 200) {
+          return empty.pipe(res);
+        }
+        empty.resume();
+        res.setHeader('Content-Type', empty.headers['content-type']);
+        res.sendStatus(empty.statusCode);
+      });
     }
     if (!isEmpty) {
       response.resume();
