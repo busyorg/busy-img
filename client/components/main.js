@@ -6,17 +6,22 @@ import Dropzone from 'react-dropzone';
 class App extends React.Component {
     onDrop = (files) => {
         console.log('Received files: ', files);
-        
-        var data = new FormData()
-        data.append('file', files[0])
+        let pathname = window.location.pathname;
+        if (pathname && typeof pathname === 'string' && pathname.split('/@')[1]) {
+            let username = window.location.pathname.split('/@')[1];
+            var data = new FormData()
+            data.append('file', files[0])
 
-        fetch('/@nil1511', {
-            method: 'POST',
-            body: data
-        }).then((response) => response.json())
-            .then((data) => {
-                console.log(data);
-            })
+            fetch('/@' + username, {
+                method: 'POST',
+                body: data
+            }).then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                })
+        } else {
+            console.error('Invalid url username not found');
+        }
     }
 
     render() {
