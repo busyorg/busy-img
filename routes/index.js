@@ -35,13 +35,13 @@ router.get('/@:username', function(req, res, next) {
 
 router.post('/@:username', multipartMiddleware, function(req, res, next) {
   var username = req.params.username;
-  var file = req.files[0];
+  var file = req.files;
   var path = file[Object.keys(file)[0]].path;
   cloudinary.uploader.upload(path, function(result) {
     console.log(result);
+    res.json({url:result.url});
   });
   delete req.files;
-  res.json();
 });
 
 router.get('/@:username/cover', function(req, res, next) {
