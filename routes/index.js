@@ -11,13 +11,13 @@ router.get('/@:username', function(req, res, next) {
   var username = req.params.username;
   var url = cloudinary.url('@' + username, {width: 128, height: 128, crop: 'fill'});
   http.get(url, function(response) {
-    if (response.statusCode === 200) {
+    if (response.statusCode == 200) {
       return response.pipe(res);
     } else {
       isEmpty = true;
       var url = cloudinary.url('@busy', {width: 128, height: 128, crop: 'fill'});
       http.get(url, function(empty) {
-        if (empty.statusCode === 200) {
+        if (empty.statusCode == 200) {
           return empty.pipe(res);
         }
         empty.resume();
