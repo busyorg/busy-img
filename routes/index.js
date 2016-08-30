@@ -7,7 +7,6 @@ var cloudinary = require('cloudinary'),
   http = require('http');
 
 router.get('/@:username', function(req, res, next) {
-  console.log('TEST');
   var isEmpty = false;
   var username = req.params.username;
   var url = cloudinary.url('@' + username, {width: 128, height: 128, crop: 'fill', invalidate: true});
@@ -48,13 +47,13 @@ router.post('/@:username', multipartMiddleware, function(req, res, next) {
 router.get('/@:username/cover', function(req, res, next) {
   var isEmpty = false;
   var username = req.params.username;
-  var url = cloudinary.url('@' + username, {width: 900, height: 250, crop: 'fill'});
+  var url = cloudinary.url('@' + username + '/cover', {width: 900, height: 250, crop: 'fill'});
   http.get(url, function(response) {
     if (response.statusCode === 200) {
       return response.pipe(res);
     } else {
       isEmpty = true;
-      var url = cloudinary.url('@busy', {width: 900, height: 250, crop: 'fill'});
+      var url = cloudinary.url('@busy/cover', {width: 900, height: 250, crop: 'fill'});
       http.get(url, function(empty) {
         if (empty.statusCode === 200) {
           return empty.pipe(res);
