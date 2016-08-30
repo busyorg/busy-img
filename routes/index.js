@@ -35,25 +35,25 @@ router.get('/@:username', function(req, res, next) {
 
 router.post('/@:username', multipartMiddleware, function(req, res, next) {
   var username = req.params.username;
-  var file = req.files[0];
+  var file = req.files;
   var path = file[Object.keys(file)[0]].path;
   cloudinary.uploader.upload(path, function(result) {
     console.log(result);
-  });
+    res.json({url:result.url});
+  }, { public_id: '@'+username });
   delete req.files;
-  res.json();
 });
 
 router.get('/@:username/cover', function(req, res, next) {
   var isEmpty = false;
   var username = req.params.username;
-  var url = cloudinary.url('@' + username + '/cover', {width: 900, height: 250, crop: 'fill'});
+  var url = cloudinary.url('@' + username, {width: 900, height: 250, crop: 'fill', gravity: 'faces'});
   http.get(url, function(response) {
     if (response.statusCode === 200) {
       return response.pipe(res);
     } else {
       isEmpty = true;
-      var url = cloudinary.url('@busy/cover', {width: 900, height: 250, crop: 'fill'});
+      var url = cloudinary.url('@busy', {width: 900, height: 250, crop: 'fill', gravity: 'faces'});
       http.get(url, function(empty) {
         if (empty.statusCode === 200) {
           return empty.pipe(res);

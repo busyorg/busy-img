@@ -11,7 +11,9 @@
     "cloudinary": "^1.4.1",
     "connect-multiparty": "^2.0.0",
     "cookie-parser": "~1.4.3",
+    "cors": "^2.8.0",
     "debug": "~2.2.0",
+    "dotenv": "^2.0.0",
     "express": "~4.13.4",
     "morgan": "~1.7.0",
     "serve-favicon": "~2.3.0"
