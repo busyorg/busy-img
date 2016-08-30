@@ -7,6 +7,7 @@ var cloudinary = require('cloudinary'),
   http = require('http');
 
 router.get('/@:username', function(req, res, next) {
+  console.log('TEST');
   var isEmpty = false;
   var username = req.params.username;
   var url = cloudinary.url('@' + username, {width: 128, height: 128, crop: 'fill'});
