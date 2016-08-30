@@ -10,7 +10,7 @@ router.get('/@:username', function(req, res, next) {
   console.log('TEST');
   var isEmpty = false;
   var username = req.params.username;
-  var url = cloudinary.url('@' + username, {width: 128, height: 128, crop: 'fill'});
+  var url = cloudinary.url('@' + username, {width: 128, height: 128, crop: 'fill', invalidate: true});
   http.get(url, function(response) {
     if (response.statusCode == 200) {
       return response.pipe(res);
