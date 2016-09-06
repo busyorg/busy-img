@@ -38,9 +38,18 @@ router.post('/@:username', multipartMiddleware, function(req, res, next) {
   var file = req.files;
   var path = file[Object.keys(file)[0]].path;
   cloudinary.uploader.upload(path, function(result) {
-    console.log(result);
     res.json({url:result.url});
   }, { public_id: '@'+username });
+  delete req.files;
+});
+
+router.post('/@:username/cover', multipartMiddleware, function (req, res, next) {
+  var username = req.params.username;
+  var file = req.files;
+  var path = file[Object.keys(file)[0]].path;
+  cloudinary.uploader.upload(path, function (result) {
+    res.json({ url: result.url });
+  }, { public_id: '@' + username + '/cover' });
   delete req.files;
 });
 
