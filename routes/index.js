@@ -1,4 +1,5 @@
 var express = require('express');
+var steem = require('steem');
 var router = express.Router();
 
 var cloudinary = require('cloudinary'),
@@ -6,40 +7,56 @@ var cloudinary = require('cloudinary'),
   multipartMiddleware = multipart(),
   http = require('http');
 
-router.get('/@:username', function(req, res, next) {
-  var isEmpty = false;
+function addCloudinaryOptions(url, options) {
+  var urlArray = url.split('/');
+  if (urlArray[6]) {
+    urlArray.splice(6, 0, options)
+    url = urlArray.join('/')
+  }
+  return url;
+}
+
+router.get('/@:username', function (req, res, next) {
   var username = req.params.username;
-  var url = cloudinary.url('@' + username, {width: 128, height: 128, crop: 'fill', invalidate: true});
-  http.get(url, function(response) {
-    if (response.statusCode == 200) {
-      return response.pipe(res);
-    } else {
-      isEmpty = true;
-      var url = cloudinary.url('@busy', {width: 128, height: 128, crop: 'fill'});
-      http.get(url, function(empty) {
-        if (empty.statusCode == 200) {
-          return empty.pipe(res);
+  var url = cloudinary.url('@' + username, { width: 128, height: 128, crop: 'fill' });
+  steem.api.getAccounts([username], function (err, result) {
+    try {
+      if (err || result.length === 0) {
+        throw new Error('image not found');
+      } else {
+        var json_metadata = result[0].json_metadata;
+        if (json_metadata.length) {
+          json_metadata = JSON.parse(json_metadata);
+          var profile_image = json_metadata.profile && json_metadata.profile.profile_image;
+          if (profile_image) {
+            http.get(addCloudinaryOptions(profile_image, 'c_fill,w_128,h_128'), function (response) {
+              return response.pipe(res);
+            })
+          }
+        } else if (url) {
+          http.get(url, function (response) {
+            return response.pipe(res);
+          })
+        } else {
+          throw new Error('image not found');
         }
-        empty.resume();
-        res.setHeader('Content-Type', empty.headers['content-type']);
-        res.sendStatus(empty.statusCode);
+      }
+    } catch (e) {
+      var url = cloudinary.url('@busy', { width: 128, height: 128, crop: 'fill' });
+      http.get(url, function (empty) {
+        return empty.pipe(res);
       });
-    }
-    if (!isEmpty) {
-      response.resume();
-      res.setHeader('Content-Type', response.headers['content-type']);
-      res.sendStatus(response.statusCode);
     }
   });
 });
 
-router.post('/@:username', multipartMiddleware, function(req, res, next) {
+router.post('/@:username', multipartMiddleware, function (req, res, next) {
   var username = req.params.username;
   var file = req.files;
   var path = file[Object.keys(file)[0]].path;
-  cloudinary.uploader.upload(path, function(result) {
-    res.json({url:result.url});
-  }, { public_id: '@'+username });
+  cloudinary.uploader.upload(path, function (result) {
+    res.json({ url: result.url });
+  }, { public_id: '@' + username });
   delete req.files;
 });
 
@@ -53,29 +70,36 @@ router.post('/@:username/cover', multipartMiddleware, function (req, res, next) 
   delete req.files;
 });
 
-router.get('/@:username/cover', function(req, res, next) {
-  var isEmpty = false;
+router.get('/@:username/cover', function (req, res, next) {
   var username = req.params.username;
-  var url = cloudinary.url('@' + username + '/cover', {width: 900, height: 250, crop: 'fill'});
-  http.get(url, function(response) {
-    if (response.statusCode === 200) {
-      return response.pipe(res);
-    } else {
-      isEmpty = true;
-      var url = cloudinary.url('@busy/cover', {width: 900, height: 250, crop: 'fill'});
-      http.get(url, function(empty) {
-        if (empty.statusCode === 200) {
-          return empty.pipe(res);
+  var url = cloudinary.url('@' + username + '/cover', { width: 900, height: 250, crop: 'fill' });
+  steem.api.getAccounts([username], function (err, result) {
+    try {
+      if (err || result.length === 0) {
+        throw new Error('image not found');
+      } else {
+        var json_metadata = result[0].json_metadata;
+        if (json_metadata.length) {
+          json_metadata = JSON.parse(json_metadata);
+          var cover_image = json_metadata.profile && json_metadata.profile.cover_image;
+          if (cover_image) {
+            http.get(addCloudinaryOptions(cover_image, 'c_fill,w_900,h_250'), function (response) {
+              return response.pipe(res);
+            })
+          }
+        } else if (url) {
+          http.get(url, function (response) {
+            return response.pipe(res);
+          })
+        } else {
+          throw new Error('image not found');
         }
-        empty.resume();
-        res.setHeader('Content-Type', empty.headers['content-type']);
-        res.sendStatus(empty.statusCode);
+      }
+    } catch (e) {
+      var url = cloudinary.url('@busy/cover', { width: 900, height: 250, crop: 'fill' });
+      http.get(url, function (empty) {
+        return empty.pipe(res);
       });
-    }
-    if (!isEmpty) {
-      response.resume();
-      res.setHeader('Content-Type', response.headers['content-type']);
-      res.sendStatus(response.statusCode);
     }
   });
 });
