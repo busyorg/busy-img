@@ -18,9 +18,9 @@ function addCloudinaryOptions(url, options) {
 
 router.get('/@:username', function (req, res, next) {
   var username = req.params.username;
-  var url = cloudinary.url('@' + username, { width: 128, height: 128, crop: 'fill' });
   steem.api.getAccounts([username], function (err, result) {
     try {
+      var url = cloudinary.url('@' + username, { width: 128, height: 128, crop: 'fill' });
       if (err || result.length === 0) {
         throw new Error('image not found');
       } else {
@@ -78,9 +78,9 @@ router.post('/@:username/cover', multipartMiddleware, function (req, res, next) 
 
 router.get('/@:username/cover', function (req, res, next) {
   var username = req.params.username;
-  var url = cloudinary.url('@' + username + '/cover', { width: 900, height: 250, crop: 'fill' });
   steem.api.getAccounts([username], function (err, result) {
     try {
+      var url = cloudinary.url('@' + username + '/cover', { width: 900, height: 250, crop: 'fill' });
       if (err || result.length === 0) {
         throw new Error('image not found');
       } else {
@@ -92,6 +92,12 @@ router.get('/@:username/cover', function (req, res, next) {
             http.get(addCloudinaryOptions(cover_image, 'c_fill,w_900,h_250'), function (response) {
               return response.pipe(res);
             })
+          } else if (url) {
+            http.get(url, function (response) {
+              return response.pipe(res);
+            })
+          } else {
+            throw new Error('image not found');
           }
         } else if (url) {
           http.get(url, function (response) {
