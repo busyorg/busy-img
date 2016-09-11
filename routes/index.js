@@ -32,6 +32,12 @@ router.get('/@:username', function (req, res, next) {
             http.get(addCloudinaryOptions(profile_image, 'c_fill,w_128,h_128'), function (response) {
               return response.pipe(res);
             })
+          } else if (url) {
+            http.get(url, function (response) {
+              return response.pipe(res);
+            })
+          } else {
+            throw new Error('image not found');
           }
         } else if (url) {
           http.get(url, function (response) {
