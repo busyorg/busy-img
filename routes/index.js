@@ -106,5 +106,46 @@ router.post('/@:username/cover', multipartMiddleware, function (req, res, next) 
   delete req.files;
 });
 
+/*!
+ * POST /@:username/uploads
+ *
+ * Uploads a file to cloudinary and responds with the result. Requires one
+ * multipart form file field
+ */
+
+router.post('/@:username/uploads', multipartMiddleware, function (req, res, next) {
+  var username = req.params.username;
+  var files = req.files;
+
+  if (!isEmpty(files)) {
+    var err = new Error('Missing a file parameter');
+    err.status = 422;
+    return next(err);
+  }
+
+  var path = files[Object.keys(files)[0]].path;
+  cloudinary.uploader.upload(path, function (result) {
+    res.status(201);
+    res.json(result);
+  }, {
+    tags: [
+      '@' + username,
+      'general-upload',
+    ],
+  });
+});
+
+/*!
+ * GET /@:username/uploads
+ *
+ * Gets an user's uploads by querying cloudinary for its tag
+ */
+
+router.get('/@:username/uploads', function (req, res, next) {
+  var username = req.params.username;
+  cloudinary.api.resources_by_tag('@' + username, function (result) {
+    res.json(result);
+  });
+});
 
 module.exports = router;
