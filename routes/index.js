@@ -6,7 +6,8 @@ var multipart = require('connect-multiparty');
 var steem = require('steem');
 
 var multipartMiddleware = multipart();
-var cloudinaryRateLimiter = new limiter.RateLimiter(500, 'hour');
+// 2000 calls an hour because we're on the Bronze plan, usually would be 500
+var cloudinaryRateLimiter = new limiter.RateLimiter(2000, 'hour');
 var router = express.Router();
 
 function addCloudinaryOptions(url, options) {
