@@ -1,11 +1,13 @@
+var cloudinary = require('cloudinary');
 var express = require('express');
+var http = require('http');
+var limiter = require('limiter');
+var multipart = require('connect-multiparty');
 var steem = require('steem');
-var router = express.Router();
 
-var cloudinary = require('cloudinary'),
-  multipart = require('connect-multiparty'),
-  multipartMiddleware = multipart(),
-  http = require('http');
+var multipartMiddleware = multipart();
+var cloudinaryRateLimiter = new limiter.RateLimiter(500, 'hour');
+var router = express.Router();
 
 function addCloudinaryOptions(url, options) {
   var urlArray = url.split('/');
@@ -155,8 +157,13 @@ router.post('/@:username/uploads', multipartMiddleware, function (req, res, next
 
 router.get('/@:username/uploads', function (req, res, next) {
   var username = req.params.username;
-  cloudinary.api.resources_by_tag('@' + username, function (result) {
-    res.json(result);
+  cloudinaryRateLimiter.removeTokens(1, function () {
+    // ^^ Error isn't relevant here, see
+    // https://www.npmjs.com/package/limiter#usage
+
+    cloudinary.api.resources_by_tag('@' + username, function (result) {
+      res.json(result.resources);
+    });
   });
 });
 
