@@ -42,3 +42,6 @@ node_modules
 !.vscode/launch.json
 
 .env
+.envrc
+.tern-port
+yarn.lock
