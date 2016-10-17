@@ -131,14 +131,15 @@ router.post('/@:username/cover', multipartMiddleware, function (req, res, next) 
 router.post('/@:username/uploads', multipartMiddleware, function (req, res, next) {
   var username = req.params.username;
   var files = req.files;
+  var keys = Object.keys(files);
 
-  if (!isEmpty(files)) {
+  if (!keys[0]) {
     var err = new Error('Missing a file parameter');
     err.status = 422;
     return next(err);
   }
 
-  var path = files[Object.keys(files)[0]].path;
+  var path = files[keys[0]].path;
   cloudinary.uploader.upload(path, function (result) {
     res.status(201);
     res.json(result);
