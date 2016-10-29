@@ -1,6 +1,6 @@
 var cloudinary = require('cloudinary');
 var express = require('express');
-var http = require('http');
+var request = require('request');
 var limiter = require('limiter');
 var multipart = require('connect-multiparty');
 var steem = require('steem');
@@ -21,12 +21,12 @@ function addCloudinaryOptions(url, options) {
 
 function getCloundaryImg(url, res, defaultName, defaultOptions) {
   if (url) {
-    http.get(url, function (response) {
+    request.get(url).on('response', function (response) {
       if (response.statusCode == 200)
         return response.pipe(res);
       else
         return defaultImg(res, defaultName, defaultOptions);
-    })
+    });
   } else {
     return defaultImg(res, defaultName, defaultOptions);
   }
@@ -34,9 +34,7 @@ function getCloundaryImg(url, res, defaultName, defaultOptions) {
 
 function defaultImg(res, name, options) {
   var url = cloudinary.url(name, options);
-  http.get(url, function (empty) {
-    return empty.pipe(res);
-  });
+  request.get(url).pipe(res);
 }
 
 router.get('/@:username', function (req, res, next) {
@@ -96,12 +94,12 @@ router.post('/@:username', multipartMiddleware, function (req, res, next) {
   cloudinary.uploader.upload(path, function (result) {
     res.json({ url: result.url });
   }, {
-    public_id: '@' + username,
-    tags: [
-      '@' + username,
-      'profile-picture',
-    ],
-  });
+      public_id: '@' + username,
+      tags: [
+        '@' + username,
+        'profile-picture',
+      ],
+    });
   delete req.files;
 });
 
@@ -112,12 +110,12 @@ router.post('/@:username/cover', multipartMiddleware, function (req, res, next) 
   cloudinary.uploader.upload(path, function (result) {
     res.json({ url: result.url });
   }, {
-    public_id: '@' + username + '/cover',
-    tags: [
-      '@' + username,
-      'cover-picture',
-    ],
-  });
+      public_id: '@' + username + '/cover',
+      tags: [
+        '@' + username,
+        'cover-picture',
+      ],
+    });
   delete req.files;
 });
 
@@ -144,11 +142,11 @@ router.post('/@:username/uploads', multipartMiddleware, function (req, res, next
     res.status(201);
     res.json(result);
   }, {
-    tags: [
-      '@' + username,
-      'general-upload',
-    ],
-  });
+      tags: [
+        '@' + username,
+        'general-upload',
+      ],
+    });
 });
 
 /*!

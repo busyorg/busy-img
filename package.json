@@ -16,6 +16,7 @@
     "express": "~4.13.4",
     "limiter": "^1.1.0",
     "morgan": "~1.7.0",
+    "request": "^2.76.0",
     "serve-favicon": "~2.3.0",
     "steem": "^0.3.21"
   }
