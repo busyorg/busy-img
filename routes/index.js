@@ -10,10 +10,12 @@ var multipartMiddleware = multipart();
 var cloudinaryRateLimiter = new limiter.RateLimiter(2000, 'hour');
 var router = express.Router();
 
+var defaultAvatar = '@steemconnect';
+
 function addCloudinaryOptions(url, options) {
   var urlArray = url.split('/');
   if (urlArray[6]) {
-    urlArray.splice(6, 0, options)
+    urlArray.splice(6, 0, options);
     url = urlArray.join('/')
   }
   return url;
@@ -49,15 +51,15 @@ router.get('/@:username', function (req, res, next) {
           var profile_image = json_metadata.profile && json_metadata.profile.profile_image;
           if (profile_image) {
             var profile_image_url = addCloudinaryOptions(profile_image, 'c_fill,w_128,h_128');
-            return getCloundaryImg(profile_image_url, res, '@busy', { width: 128, height: 128, crop: 'fill' });
+            return getCloundaryImg(profile_image_url, res, defaultAvatar, { width: 128, height: 128, crop: 'fill' });
           }
         }
-        return getCloundaryImg(url, res, '@busy', { width: 128, height: 128, crop: 'fill' });
+        return getCloundaryImg(url, res, defaultAvatar, { width: 128, height: 128, crop: 'fill' });
       } else {
-        return defaultImg(res, '@busy', { width: 128, height: 128, crop: 'fill' });
+        return defaultImg(res, defaultAvatar, { width: 128, height: 128, crop: 'fill' });
       }
     } catch (e) {
-      return defaultImg(res, '@busy', { width: 128, height: 128, crop: 'fill' });
+      return defaultImg(res, defaultAvatar, { width: 128, height: 128, crop: 'fill' });
     }
   });
 });
@@ -74,15 +76,15 @@ router.get('/@:username/cover', function (req, res, next) {
           var cover_image = json_metadata.profile && json_metadata.profile.cover_image;
           if (cover_image) {
             var cover_image_url = addCloudinaryOptions(cover_image, 'c_fill,w_900,h_250');
-            return getCloundaryImg(cover_image_url, res, '@busy/cover', { width: 900, height: 250, crop: 'fill' });
+            return getCloundaryImg(cover_image_url, res, `${defaultAvatar}/cover`, { width: 900, height: 250, crop: 'fill' });
           }
         }
-        return getCloundaryImg(url, res, '@busy/cover', { width: 900, height: 250, crop: 'fill' });
+        return getCloundaryImg(url, res, `${defaultAvatar}/cover`, { width: 900, height: 250, crop: 'fill' });
       } else {
-        return defaultImg(res, '@busy/cover', { width: 900, height: 250, crop: 'fill' });
+        return defaultImg(res, `${defaultAvatar}/cover`, { width: 900, height: 250, crop: 'fill' });
       }
     } catch (e) {
-      return defaultImg(res, '@busy/cover', { width: 900, height: 250, crop: 'fill' });
+      return defaultImg(res, `${defaultAvatar}/cover`, { width: 900, height: 250, crop: 'fill' });
     }
   });
 });
