@@ -76,15 +76,15 @@ router.get('/@:username/cover', function (req, res, next) {
           var cover_image = json_metadata.profile && json_metadata.profile.cover_image;
           if (cover_image) {
             var cover_image_url = addCloudinaryOptions(cover_image, 'c_fill,w_900,h_250');
-            return getCloundaryImg(cover_image_url, res, `${defaultAvatar}/cover`, { width: 900, height: 250, crop: 'fill' });
+            return getCloundaryImg(cover_image_url, res, defaultAvatar + '/cover', { width: 900, height: 250, crop: 'fill' });
           }
         }
-        return getCloundaryImg(url, res, `${defaultAvatar}/cover`, { width: 900, height: 250, crop: 'fill' });
+        return getCloundaryImg(url, res, defaultAvatar + '/cover', { width: 900, height: 250, crop: 'fill' });
       } else {
-        return defaultImg(res, `${defaultAvatar}/cover`, { width: 900, height: 250, crop: 'fill' });
+        return defaultImg(res, defaultAvatar + '/cover', { width: 900, height: 250, crop: 'fill' });
       }
     } catch (e) {
-      return defaultImg(res, `${defaultAvatar}/cover`, { width: 900, height: 250, crop: 'fill' });
+      return defaultImg(res, defaultAvatar + '/cover', { width: 900, height: 250, crop: 'fill' });
     }
   });
 });
@@ -99,8 +99,8 @@ router.post('/@:username', multipartMiddleware, function (req, res, next) {
       public_id: '@' + username,
       tags: [
         '@' + username,
-        'profile-picture',
-      ],
+        'profile-picture'
+      ]
     });
   delete req.files;
 });
@@ -115,8 +115,8 @@ router.post('/@:username/cover', multipartMiddleware, function (req, res, next) 
       public_id: '@' + username + '/cover',
       tags: [
         '@' + username,
-        'cover-picture',
-      ],
+        'cover-picture'
+      ]
     });
   delete req.files;
 });
@@ -146,8 +146,8 @@ router.post('/@:username/uploads', multipartMiddleware, function (req, res, next
   }, {
       tags: [
         '@' + username,
-        'general-upload',
-      ],
+        'general-upload'
+      ]
     });
 });
 
