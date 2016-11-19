@@ -36,6 +36,7 @@ function getCloundaryImg(url, res, defaultName, defaultOptions) {
 
 function defaultImg(res, name, options) {
   var url = cloudinary.url(name, options);
+  res.writeHead(200, {'Content-Type': 'image/png'});
   request.get(url).pipe(res);
 }
 
@@ -115,7 +116,7 @@ router.post('/@:username/cover', multipartMiddleware, function (req, res, next) 
       public_id: '@' + username + '/cover',
       tags: [
         '@' + username,
-        'cover-picture'
+        'cover_image'
       ]
     });
   delete req.files;
