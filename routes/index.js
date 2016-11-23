@@ -40,6 +40,7 @@ function showImage(url, res) {
       request.get(url).on('response', function (response) {
         var contentType = response.headers['content-type'] || '';
         if (response.statusCode == 200 && contentType.search('image') === 0) {
+          res.writeHead(200, { 'Content-Type': contentType });
           return resolve(response.pipe(res));
         } else {
           debug('showImage Img not found', url, response.statusCode, contentType);
