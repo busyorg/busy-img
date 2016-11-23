@@ -33,8 +33,8 @@ function addCloudinaryOptions(url, options) {
   return url;
 }
 
-function getCloundaryImg(url, res) {
-  debug('getCloundaryImg', url);
+function showImage(url, res) {
+  debug('showImage', url);
   return new Promise(function (resolve, reject) {
     if (url) {
       request.get(url).on('response', function (response) {
@@ -42,12 +42,12 @@ function getCloundaryImg(url, res) {
         if (response.statusCode == 200 && contentType.search('image') === 0) {
           return resolve(response.pipe(res));
         } else {
-          debug('getCloundaryImg Img not found', url, response.statusCode, contentType);
+          debug('showImage Img not found', url, response.statusCode, contentType);
           return reject(new Error('Img not found'));
         }
       });
     } else {
-      debug('getCloundaryImg invalid url not found', url);
+      debug('showImage invalid url not found', url);
       return reject(new Error('invalid url not found'))
     }
   });
@@ -67,7 +67,7 @@ function addToCloudinary(uploadData, res, defaultAvatar, defaultOptions) {
     cloudinary.uploader.upload(uploadData.url, function (result) {
       var url = addCloudinaryOptions(result.url, defaultOptions)
       console.log('result', result);
-      return getCloundaryImg(url, res).catch(function () {
+      return showImage(url, res).catch(function () {
         return defaultImg(res, defaultAvatar, defaultOptions);
       })
     }, {
@@ -87,7 +87,7 @@ router.get('/@:username', function (req, res, next) {
     try {
       var options = { width: 128, height: 128, crop: 'fill' };
       var url = cloudinary.url('@' + username, options);
-      return getCloundaryImg(url, res).catch(function (e) {
+      return showImage(url, res).catch(function (e) {
         var profile_image;
         if (!err && result.length !== 0) {
           var json_metadata = result[0].json_metadata;
@@ -117,7 +117,7 @@ router.get('/@:username/cover', function (req, res, next) {
     try {
       var options = { width: 900, height: 250, crop: 'fill' };
       var url = cloudinary.url('@' + username + '/cover', options);
-      return getCloundaryImg(url, res).catch(function (e) {
+      return showImage(url, res).catch(function (e) {
         var cover_image;
         if (!err && result.length !== 0) {
           var json_metadata = result[0].json_metadata;
