@@ -65,11 +65,15 @@ function addToCloudinary(uploadData, res, defaultAvatar, defaultOptions) {
   debug('addImage To Cloudinary', uploadData.public_id, uploadData.url);
   try {
     cloudinary.uploader.upload(uploadData.url, function (result) {
-      var url = addCloudinaryOptions(result.url, defaultOptions)
       console.log('result', result);
-      return showImage(url, res).catch(function () {
+      if (result.url) {
+        var url = addCloudinaryOptions(result.url, defaultOptions)
+        return showImage(url, res).catch(function () {
+          return defaultImg(res, defaultAvatar, defaultOptions);
+        })
+      } else {
         return defaultImg(res, defaultAvatar, defaultOptions);
-      })
+      }
     }, {
         public_id: uploadData.public_id,
         tags: uploadData.tags,
