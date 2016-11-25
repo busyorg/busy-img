@@ -62,28 +62,11 @@ function defaultImg(res, name, options) {
   request.get(url).pipe(res);
 }
 
-function addToCloudinary(uploadData, res, defaultAvatar, defaultOptions) {
-  debug('addImage To Cloudinary', uploadData.public_id, uploadData.url);
-  try {
-    cloudinary.uploader.upload(uploadData.url, function (result) {
-      console.log('result', result);
-      if (result.url) {
-        var url = addCloudinaryOptions(result.url, defaultOptions)
-        return showImage(url, res).catch(function () {
-          return defaultImg(res, defaultAvatar, defaultOptions);
-        })
-      } else {
-        return defaultImg(res, defaultAvatar, defaultOptions);
-      }
-    }, {
-        public_id: uploadData.public_id,
-        tags: uploadData.tags,
-        context: { url: uploadData.url }
-      });
-  } catch (e) {
-    debug('addToCloudinary err', e);
-    return defaultImg(res, defaultAvatar, defaultOptions);
-  }
+function showExternalImgOrDefault(url, res, defaultAvatar, options) {
+  return showImage(addCloudinaryOptions(url, options), res)
+    .catch(function (e) {
+      return defaultImg(res, defaultAvatar, options);
+    });
 }
 
 router.get('/@:username', function (req, res, next) {
@@ -103,8 +86,7 @@ router.get('/@:username', function (req, res, next) {
         }
 
         if (profile_image) {
-          var uploadData = { url: profile_image, public_id: '@' + username, tags: ['@' + username, 'profile_image'] };
-          return addToCloudinary(uploadData, res, defaultAvatar, options);
+          return showExternalImgOrDefault(profile_image, res, defaultAvatar, options);
         } else {
           return defaultImg(res, defaultAvatar, options);
         }
@@ -133,8 +115,7 @@ router.get('/@:username/cover', function (req, res, next) {
         }
 
         if (cover_image) {
-          var uploadData = { url: cover_image, public_id: '@' + username + '/cover', tags: ['@' + username, 'cover_image'] };
-          return addToCloudinary(uploadData, res, defaultAvatar + '/cover', options);
+          return showExternalImgOrDefault(cover_image, res, defaultAvatar + '/cover', options);
         } else {
           return defaultImg(res, defaultAvatar + '/cover', options);
         }
