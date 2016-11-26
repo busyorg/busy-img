@@ -87,8 +87,8 @@ router.get('/@:username', function (req, res, next) {
 
 router.get('/@:username/cover', function (req, res, next) {
   var username = req.params.username;
-  var width = req.query.width|| req.query.size || 128;
-  var height = req.query.height|| req.query.size || 128;
+  var width = req.query.width|| req.query.size || 850;
+  var height = req.query.height|| req.query.size || 300;
   var crop = req.query.crop || 'fill';
   steem.api.getAccounts([username], function (err, result) {
     try {
