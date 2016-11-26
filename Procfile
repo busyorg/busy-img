@@ -1,1 +1,1 @@
-web: node --optimize_for_size --max_old_space_size=460 --gc_interval=100 bin/www
+web: pm2 start ./bin/www --max-memory-restart 450M  && pm2 logs all
