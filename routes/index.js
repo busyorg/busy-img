@@ -48,7 +48,7 @@ function showExternalImgOrDefault(url, res, defaultAvatar, options) {
     sign_url: true,
     defaultAvatar: defaultAvatar
   });
-  console.log('url', url);
+
   var newUrl = cloudinary.url(url, fetchOptions);
 
   return showImage(newUrl, res).catch(function (e) {
