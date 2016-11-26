@@ -71,9 +71,12 @@ function showExternalImgOrDefault(url, res, defaultAvatar, options) {
 
 router.get('/@:username', function (req, res, next) {
   var username = req.params.username;
+  var width = req.params.width || 128;
+  var height = req.params.height || 128;
+  var crop = req.params.crop || 'fill';
   steem.api.getAccounts([username], function (err, result) {
     try {
-      var options = { width: 128, height: 128, crop: 'fill' };
+      var options = { width: width, height: height, crop: crop };
       var profile_image;
       if (!err && result.length !== 0) {
         var json_metadata = result[0].json_metadata;
@@ -97,9 +100,12 @@ router.get('/@:username', function (req, res, next) {
 
 router.get('/@:username/cover', function (req, res, next) {
   var username = req.params.username;
+  var width = req.params.width || 900;
+  var height = req.params.height || 250;
+  var crop = req.params.crop || 'fill';
   steem.api.getAccounts([username], function (err, result) {
     try {
-      var options = { width: 900, height: 250, crop: 'fill' };
+      var options = { width: width, height: height, crop: crop };
       var cover_image;
       if (!err && result.length !== 0) {
         var json_metadata = result[0].json_metadata;
