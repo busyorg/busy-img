@@ -15,22 +15,12 @@ var defaultAvatar = '@steemconnect';
 
 function addCloudinaryOptions(url, options) {
   debug('addCloudinaryOptions', url, options);
-  var optionsString = typeof options === 'string' && options;
-  if (!optionsString) {
-    optionsString = '';
-    var optionsKeys = Object.keys(options);
-    for (var i = 0; i < optionsKeys.length; i++) {
-      var key = optionsKeys[i];
-      optionsString += key.substring(0, 1) + '_' + options[key] + ',';
-    }
-    optionsString = optionsString.substring(0, optionsString.length - 1);
-  }
-  var urlArray = url.split('/');
-  if (urlArray[6]) {
-    urlArray.splice(6, 0, optionsString);
-    url = urlArray.join('/')
-  }
-  return url;
+  var fetchOptions = Object.assign({}, options, {
+    type: 'fetch',
+    sign_url: true
+  });
+  var newUrl = cloudinary.url(url, fetchOptions)
+  return newUrl;
 }
 
 function showImage(url, res) {
