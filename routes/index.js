@@ -74,23 +74,20 @@ router.get('/@:username', function (req, res, next) {
   steem.api.getAccounts([username], function (err, result) {
     try {
       var options = { width: 128, height: 128, crop: 'fill' };
-      var url = cloudinary.url('@' + username, options);
-      return showImage(url, res).catch(function (e) {
-        var profile_image;
-        if (!err && result.length !== 0) {
-          var json_metadata = result[0].json_metadata;
-          if (json_metadata.length) {
-            json_metadata = JSON.parse(json_metadata);
-            profile_image = json_metadata.profile && json_metadata.profile.profile_image;
-          }
+      var profile_image;
+      if (!err && result.length !== 0) {
+        var json_metadata = result[0].json_metadata;
+        if (json_metadata.length) {
+          json_metadata = JSON.parse(json_metadata);
+          profile_image = json_metadata.profile && json_metadata.profile.profile_image;
         }
+      }
 
-        if (profile_image) {
-          return showExternalImgOrDefault(profile_image, res, defaultAvatar, options);
-        } else {
-          return defaultImg(res, defaultAvatar, options);
-        }
-      });
+      if (profile_image) {
+        return showExternalImgOrDefault(profile_image, res, defaultAvatar, options);
+      } else {
+        return defaultImg(res, defaultAvatar, options);
+      }
     } catch (e) {
       debug('error in get /@' + username, e);
       return defaultImg(res, defaultAvatar, options);
@@ -103,23 +100,20 @@ router.get('/@:username/cover', function (req, res, next) {
   steem.api.getAccounts([username], function (err, result) {
     try {
       var options = { width: 900, height: 250, crop: 'fill' };
-      var url = cloudinary.url('@' + username + '/cover', options);
-      return showImage(url, res).catch(function (e) {
-        var cover_image;
-        if (!err && result.length !== 0) {
-          var json_metadata = result[0].json_metadata;
-          if (json_metadata.length) {
-            json_metadata = JSON.parse(json_metadata);
-            cover_image = json_metadata.profile && json_metadata.profile.cover_image;
-          }
+      var cover_image;
+      if (!err && result.length !== 0) {
+        var json_metadata = result[0].json_metadata;
+        if (json_metadata.length) {
+          json_metadata = JSON.parse(json_metadata);
+          cover_image = json_metadata.profile && json_metadata.profile.cover_image;
         }
+      }
 
-        if (cover_image) {
-          return showExternalImgOrDefault(cover_image, res, defaultAvatar + '/cover', options);
-        } else {
-          return defaultImg(res, defaultAvatar + '/cover', options);
-        }
-      })
+      if (cover_image) {
+        return showExternalImgOrDefault(cover_image, res, defaultAvatar + '/cover', options);
+      } else {
+        return defaultImg(res, defaultAvatar + '/cover', options);
+      }
     } catch (e) {
       return defaultImg(res, defaultAvatar + '/cover', options);
     }
