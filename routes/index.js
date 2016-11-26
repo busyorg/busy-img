@@ -13,16 +13,6 @@ var router = express.Router();
 
 var defaultAvatar = '@steemconnect';
 
-function addCloudinaryOptions(url, options) {
-  debug('addCloudinaryOptions', url, options);
-  var fetchOptions = Object.assign({}, options, {
-    type: 'fetch',
-    sign_url: true
-  });
-  var newUrl = cloudinary.url(url, fetchOptions)
-  return newUrl;
-}
-
 function showImage(url, res) {
   debug('showImage', url);
   return new Promise(function (resolve, reject) {
@@ -53,17 +43,24 @@ function defaultImg(res, name, options) {
 }
 
 function showExternalImgOrDefault(url, res, defaultAvatar, options) {
-  return showImage(addCloudinaryOptions(url, options), res)
-    .catch(function (e) {
-      return defaultImg(res, defaultAvatar, options);
-    });
+  var fetchOptions = Object.assign({}, options, {
+    type: 'fetch',
+    sign_url: true,
+    defaultAvatar: defaultAvatar
+  });
+  console.log('url', url);
+  var newUrl = cloudinary.url(url, fetchOptions);
+
+  return showImage(newUrl, res).catch(function (e) {
+    return defaultImg(res, defaultAvatar, options);
+  });
 }
 
 router.get('/@:username', function (req, res, next) {
   var username = req.params.username;
-  var width = req.params.width || 128;
-  var height = req.params.height || 128;
-  var crop = req.params.crop || 'fill';
+  var width = req.query.width || 128;
+  var height = req.query.height || 128;
+  var crop = req.query.crop || 'fill';
   steem.api.getAccounts([username], function (err, result) {
     try {
       var options = { width: width, height: height, crop: crop };
@@ -90,9 +87,9 @@ router.get('/@:username', function (req, res, next) {
 
 router.get('/@:username/cover', function (req, res, next) {
   var username = req.params.username;
-  var width = req.params.width || 900;
-  var height = req.params.height || 250;
-  var crop = req.params.crop || 'fill';
+  var width = req.query.width || 128;
+  var height = req.query.height || 128;
+  var crop = req.query.crop || 'fill';
   steem.api.getAccounts([username], function (err, result) {
     try {
       var options = { width: width, height: height, crop: crop };
