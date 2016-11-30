@@ -1,0 +1,22 @@
+{
+  "name": "getAvatar",
+  "version": "1.0.0",
+  "description": "",
+  "engines": {
+    "node": ">=4.0"
+  },
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Nilesh Suthar <nileshsuthar@live.in>",
+  "license": "ISC",
+  "dependencies": {
+    "cloudinary": "^1.4.6",
+    "request": "^2.79.0"
+  },
+  "devDependencies": {
+    "serverless-offline": "^3.4.1"
+  }
+}
