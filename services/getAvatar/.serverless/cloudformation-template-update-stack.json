@@ -65,7 +65,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/getAvatar/dev/1480485980881-2016-11-30T06:06:20.881Z/getAvatar.zip"
+          "S3Key": "serverless/getAvatar/dev/1480572935621-2016-12-01T06:15:35.621Z/getAvatar.zip"
         },
         "FunctionName": "getAvatar-dev-getAvatar",
         "Handler": "handler.getAvatar",
@@ -77,7 +77,7 @@
           ]
         },
         "Runtime": "nodejs4.3",
-        "Timeout": 250
+        "Timeout": 10
       }
     },
     "ApiGatewayRestApi": {
@@ -207,7 +207,7 @@
         "MethodResponses": []
       }
     },
-    "ApiGatewayDeployment1480485980892": {
+    "ApiGatewayDeployment1480572935629": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {

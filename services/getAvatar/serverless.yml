@@ -21,7 +21,7 @@ provider:
   name: aws
   runtime: nodejs4.3
   memorySize: 512 # Overwrite the default memory size. Default is 1024
-  timeout: 250 # The default is 6
+  timeout: 10 # The default is 6
 
 # you can overwrite defaults here
 #  stage: dev
@@ -43,8 +43,8 @@ provider:
 #            - "Ref" : "ServerlessDeploymentBucket"
 
 # you can define service wide environment variables here
-#  environment:
-#    variable1: value1
+# environment:
+#   CLOUDINARY_URL: value
 
 # you can add packaging information here
 #package:
