@@ -20,8 +20,10 @@ service: getAvatar
 provider:
   name: aws
   runtime: nodejs4.3
-  memorySize: 256 # Overwrite the default memory size. Default is 1024
-  timeout: 10 # The default is 6
+  memorySize: 128 # Overwrite the default memory size. Default is 1024
+  timeout: 5 # The default is 6
+  environment:
+    CLOUDINARY_URL: ${env:CLOUDINARY_URL}
 
 # you can overwrite defaults here
 #  stage: dev
