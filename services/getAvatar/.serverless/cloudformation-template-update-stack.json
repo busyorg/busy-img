@@ -65,11 +65,33 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/getAvatar/dev/1480572935621-2016-12-01T06:15:35.621Z/getAvatar.zip"
+          "S3Key": "serverless/getAvatar/dev/1480664421839-2016-12-02T07:40:21.839Z/getAvatar.zip"
         },
         "FunctionName": "getAvatar-dev-getAvatar",
         "Handler": "handler.getAvatar",
-        "MemorySize": 512,
+        "MemorySize": 256,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs4.3",
+        "Timeout": 10
+      }
+    },
+    "GetCoverLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/getAvatar/dev/1480664421839-2016-12-02T07:40:21.839Z/getAvatar.zip"
+        },
+        "FunctionName": "getAvatar-dev-getCover",
+        "Handler": "handler.getCover",
+        "MemorySize": 256,
         "Role": {
           "Fn::GetAtt": [
             "IamRoleLambdaExecution",
@@ -86,7 +108,7 @@
         "Name": "dev-getAvatar"
       }
     },
-    "ApiGatewayResourceUsers": {
+    "ApiGatewayResourceUsernameVar": {
       "Type": "AWS::ApiGateway::Resource",
       "Properties": {
         "ParentId": {
@@ -95,37 +117,25 @@
             "RootResourceId"
           ]
         },
-        "PathPart": "users",
-        "RestApiId": {
-          "Ref": "ApiGatewayRestApi"
-        }
-      }
-    },
-    "ApiGatewayResourceUsersAvatar": {
-      "Type": "AWS::ApiGateway::Resource",
-      "Properties": {
-        "ParentId": {
-          "Ref": "ApiGatewayResourceUsers"
-        },
-        "PathPart": "avatar",
-        "RestApiId": {
-          "Ref": "ApiGatewayRestApi"
-        }
-      }
-    },
-    "ApiGatewayResourceUsersAvatarUsernameVar": {
-      "Type": "AWS::ApiGateway::Resource",
-      "Properties": {
-        "ParentId": {
-          "Ref": "ApiGatewayResourceUsersAvatar"
-        },
         "PathPart": "{username}",
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
       }
     },
-    "ApiGatewayMethodUsersAvatarUsernameVarOptions": {
+    "ApiGatewayResourceUsernameVarCover": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceUsernameVar"
+        },
+        "PathPart": "cover",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodUsernameVarOptions": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "NONE",
@@ -162,20 +172,64 @@
           ]
         },
         "ResourceId": {
-          "Ref": "ApiGatewayResourceUsersAvatarUsernameVar"
+          "Ref": "ApiGatewayResourceUsernameVar"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
       }
     },
-    "ApiGatewayMethodUsersAvatarUsernameVarGet": {
+    "ApiGatewayMethodUsernameVarCoverOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceUsernameVarCover"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodUsernameVarGet": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "HttpMethod": "GET",
         "RequestParameters": {},
         "ResourceId": {
-          "Ref": "ApiGatewayResourceUsersAvatarUsernameVar"
+          "Ref": "ApiGatewayResourceUsernameVar"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
@@ -207,7 +261,45 @@
         "MethodResponses": []
       }
     },
-    "ApiGatewayDeployment1480572935629": {
+    "ApiGatewayMethodUsernameVarCoverGet": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "GET",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceUsernameVarCover"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "GetCoverLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      }
+    },
+    "ApiGatewayDeployment1480664421851": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -216,7 +308,8 @@
         "StageName": "dev"
       },
       "DependsOn": [
-        "ApiGatewayMethodUsersAvatarUsernameVarGet"
+        "ApiGatewayMethodUsernameVarGet",
+        "ApiGatewayMethodUsernameVarCoverGet"
       ]
     },
     "GetAvatarLambdaPermissionApiGateway": {
@@ -225,6 +318,39 @@
         "FunctionName": {
           "Fn::GetAtt": [
             "GetAvatarLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "GetCoverLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GetCoverLambdaFunction",
             "Arn"
           ]
         },
@@ -264,6 +390,15 @@
       "Value": {
         "Fn::GetAtt": [
           "GetAvatarLambdaFunction",
+          "Arn"
+        ]
+      }
+    },
+    "GetCoverLambdaFunctionArn": {
+      "Description": "Lambda function info",
+      "Value": {
+        "Fn::GetAtt": [
+          "GetCoverLambdaFunction",
           "Arn"
         ]
       }

@@ -20,7 +20,7 @@ service: getAvatar
 provider:
   name: aws
   runtime: nodejs4.3
-  memorySize: 512 # Overwrite the default memory size. Default is 1024
+  memorySize: 256 # Overwrite the default memory size. Default is 1024
   timeout: 10 # The default is 6
 
 # you can overwrite defaults here
@@ -60,7 +60,14 @@ functions:
     handler: handler.getAvatar
     events:
       - http:
-          path: users/avatar/{username}
+          path: /{username}
+          method: get
+          cors: true
+  getCover:
+    handler: handler.getCover
+    events:
+      - http:
+          path: /{username}/cover
           method: get
           cors: true
 
