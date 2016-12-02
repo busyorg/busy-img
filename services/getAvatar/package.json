@@ -16,7 +16,5 @@
     "cloudinary": "^1.4.6",
     "request": "^2.79.0"
   },
-  "devDependencies": {
-    "serverless-offline": "^3.4.1"
-  }
+  "devDependencies": {}
 }

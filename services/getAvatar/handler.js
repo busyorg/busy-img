@@ -6,13 +6,10 @@ var request = require('request');
 function showImage(url) {
   return new Promise(function (resolve, reject) {
     if (url) {
-      console.log('url', url);
       request.get(url).on('response', function (response) {
         var contentType = response.headers['content-type'] || '';
-        console.log('contentType', contentType);
         if (response.statusCode == 200 && contentType.search('image') === 0) {
-          console.log('img exisit', url);
-          return resolve({ url: url });
+          return resolve(url);
         } else {
           return reject(new Error('Img not found'));
         }
@@ -21,25 +18,23 @@ function showImage(url) {
       return reject(new Error('invalid url not found'))
     }
   });
-
 }
 
 function getDefaultImg(name, options) {
-  console.log('getDefaultImg', name);
   return cloudinary.url(name, options);
 }
 
-function showExternalImgOrDefault(url, defaultAvatar, options) {
+function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
   var fetchOptions = Object.assign({}, options, {
     type: 'fetch',
     sign_url: true,
     defaultAvatar: defaultAvatar
   });
-  console.log('fetchOptions', fetchOptions);
   var newUrl = cloudinary.url(url, fetchOptions);
-  console.log('newUrl', newUrl);
-  return showImage(newUrl).catch(function (e) {
-    return getDefaultImg(defaultAvatar, options);
+  return showImage(newUrl, cb).catch(function (e) {
+    cb(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
+  }).then((url) => {
+    cb(null, { statusCode: 302, headers: { Location: url } });
   });
 }
 
@@ -51,7 +46,6 @@ module.exports.getAvatar = (event, context, callback) => {
   const height = queryStringParameters.height || queryStringParameters.size || 128;
   const crop = queryStringParameters.crop || 'fill';
   const options = { width: width, height: height, crop: crop };
-  console.log('options', options);
   request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
     function (error, response, body) {
       var profile_image;
@@ -63,35 +57,12 @@ module.exports.getAvatar = (event, context, callback) => {
         }
 
         if (profile_image) {
-          console.log('here');
-          showExternalImgOrDefault(profile_image, defaultAvatar, options).then((image) => {
-            console.log('image', image);
-            const result = {
-              statusCode: 302,
-              headers: { Location: image.url },
-            };
-            callback(null, result);
-          });
+          showExternalImgOrDefault(profile_image, defaultAvatar, options, callback);
         } else {
-          console.log('no here');
-          getDefaultImg(defaultAvatar, options).then((image) => {
-            console.log('image', image);
-            const result = {
-              statusCode: 302,
-              headers: { Location: image.url },
-            };
-            callback(null, result);
-          });
+          callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
         }
       } else {
-        const result = {
-          statusCode: 500,
-          body: JSON.stringify({
-            error: error,
-            body: body
-          })
-        };
-        callback(null, result);
+        callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
       }
     });
 };
@@ -104,7 +75,7 @@ module.exports.getCover = (event, context, callback) => {
   const height = queryStringParameters.height || queryStringParameters.size || 300;
   const crop = queryStringParameters.crop || 'fill';
   const options = { width: width, height: height, crop: crop };
-  console.log('options', options);
+
   request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
     function (error, response, body) {
       var cover_image;
@@ -114,37 +85,13 @@ module.exports.getCover = (event, context, callback) => {
           json_metadata = JSON.parse(json_metadata);
           cover_image = json_metadata.profile && json_metadata.profile.cover_image;
         }
-
         if (cover_image) {
-          console.log('here');
-          showExternalImgOrDefault(cover_image, defaultAvatar, options).then((image) => {
-            console.log('image', image);
-            const result = {
-              statusCode: 302,
-              headers: { Location: image.url },
-            };
-            callback(null, result);
-          });
+          showExternalImgOrDefault(cover_image, defaultAvatar, options, callback);
         } else {
-          console.log('no here');
-          getDefaultImg(defaultAvatar, options).then((image) => {
-            console.log('image', image);
-            const result = {
-              statusCode: 302,
-              headers: { Location: image.url },
-            };
-            callback(null, result);
-          });
+          callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
         }
       } else {
-        const result = {
-          statusCode: 500,
-          body: JSON.stringify({
-            error: error,
-            body: body
-          })
-        };
-        callback(null, result);
+        callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
       }
     })
 }
