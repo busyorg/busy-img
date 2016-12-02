@@ -65,7 +65,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/getAvatar/dev/1480664421839-2016-12-02T07:40:21.839Z/getAvatar.zip"
+          "S3Key": "serverless/getAvatar/dev/1480666701239-2016-12-02T08:18:21.239Z/getAvatar.zip"
         },
         "FunctionName": "getAvatar-dev-getAvatar",
         "Handler": "handler.getAvatar",
@@ -87,7 +87,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/getAvatar/dev/1480664421839-2016-12-02T07:40:21.839Z/getAvatar.zip"
+          "S3Key": "serverless/getAvatar/dev/1480666701239-2016-12-02T08:18:21.239Z/getAvatar.zip"
         },
         "FunctionName": "getAvatar-dev-getCover",
         "Handler": "handler.getCover",
@@ -299,7 +299,7 @@
         "MethodResponses": []
       }
     },
-    "ApiGatewayDeployment1480664421851": {
+    "ApiGatewayDeployment1480666701251": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {

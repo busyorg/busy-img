@@ -12,11 +12,7 @@ function showImage(url) {
         console.log('contentType', contentType);
         if (response.statusCode == 200 && contentType.search('image') === 0) {
           console.log('img exisit', url);
-          response.on('data', (chunk) => {
-            var buffer = new Buffer(chunk);
-            return resolve({ data: buffer.toString('base64'), url: url, contentType });
-          });
-
+          return resolve({ url: url });
         } else {
           return reject(new Error('Img not found'));
         }
@@ -30,11 +26,7 @@ function showImage(url) {
 
 function getDefaultImg(name, options) {
   console.log('getDefaultImg', name);
-  var url = cloudinary.url(name, options);
-  request.get(url).on('data', (chunk) => {
-    var buffer = new Buffer(chunk);
-    return resolve({ data: buffer.toString('base64'), url: url, contentType: 'image/jpeg' });
-  });
+  return cloudinary.url(name, options);
 }
 
 function showExternalImgOrDefault(url, defaultAvatar, options) {
@@ -75,14 +67,9 @@ module.exports.getAvatar = (event, context, callback) => {
           showExternalImgOrDefault(profile_image, defaultAvatar, options).then((image) => {
             console.log('image', image);
             const result = {
-              statusCode: 200,
-              body: `data:${image.contentType};base64,${image.data}`,
-              isBase64Encoded: true,
-              headers: {
-                // 'Content-Type': image.contentType
-              },
+              statusCode: 302,
+              headers: { Location: image.url },
             };
-            console.log('result', result);
             callback(null, result);
           });
         } else {
@@ -90,14 +77,9 @@ module.exports.getAvatar = (event, context, callback) => {
           getDefaultImg(defaultAvatar, options).then((image) => {
             console.log('image', image);
             const result = {
-              statusCode: 200,
-              body: `data:${image.contentType};base64,${image.data}`,
-              isBase64Encoded: true,
-              headers: {
-                // 'Content-Type': image.contentType
-              },
+              statusCode: 302,
+              headers: { Location: image.url },
             };
-            console.log('result', result);
             callback(null, result);
           });
         }
@@ -111,31 +93,7 @@ module.exports.getAvatar = (event, context, callback) => {
         };
         callback(null, result);
       }
-    })
-  // console.log('begin', steem, Date.now());
-  // return steem.api.getAccountsAsync(['nil1511']).then((result) => {
-  //   console.log('result', Date.now());
-  // var profile_image;
-  // if (result.length !== 0) {
-  //   var json_metadata = result[0].json_metadata;
-  //   if (json_metadata.length) {
-  //     json_metadata = JSON.parse(json_metadata);
-  //     profile_image = json_metadata.profile && json_metadata.profile.profile_image;
-  //   }
-  // }
-  //   console.log('profile_image', profile_image, result);
-  // const response = {
-  //   statusCode: 200,
-  //   body: JSON.stringify({
-  //     message: 'Go getAvatar get!',
-  //     profile_image: profile_image,
-  //   }),
-  // };
-  // console.log('callback', response)
-  //   callback(null, response);
-  // });
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
+    });
 };
 
 module.exports.getCover = (event, context, callback) => {
@@ -162,16 +120,9 @@ module.exports.getCover = (event, context, callback) => {
           showExternalImgOrDefault(cover_image, defaultAvatar, options).then((image) => {
             console.log('image', image);
             const result = {
-              statusCode: 200,
-              body: `data:${image.contentType};base64,${image.data}`,
-              isBase64Encoded: true,
-              headers: {
-                // 'Content-Type': image.contentType
-              },
-              isBase64Encoded: true,
-
+              statusCode: 302,
+              headers: { Location: image.url },
             };
-            console.log('result', result);
             callback(null, result);
           });
         } else {
@@ -179,14 +130,9 @@ module.exports.getCover = (event, context, callback) => {
           getDefaultImg(defaultAvatar, options).then((image) => {
             console.log('image', image);
             const result = {
-              statusCode: 200,
-              body: `data:${image.contentType};base64,${image.data}`,
-              isBase64Encoded: true,
-              headers: {
-                // 'Content-Type': image.contentType
-              },
+              statusCode: 302,
+              headers: { Location: image.url },
             };
-            console.log('result', result);
             callback(null, result);
           });
         }
