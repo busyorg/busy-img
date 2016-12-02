@@ -45,3 +45,4 @@ node_modules
 .envrc
 .tern-port
 yarn.lock
+.serverless
