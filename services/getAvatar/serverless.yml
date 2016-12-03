@@ -1,0 +1,79 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: getAvatar
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  memorySize: 128 # Overwrite the default memory size. Default is 1024
+  timeout: 5 # The default is 6
+  stage: dev
+  environment:
+    CLOUDINARY_URL: ${env:CLOUDINARY_URL}
+
+functions:
+  getAvatar:
+    handler: handlers/get.Avatar
+    events:
+      - http:
+          path: /{username}
+          method: get
+          cors: true
+  getCover:
+    handler: handlers/get.Cover
+    events:
+      - http:
+          path: /{username}/cover
+          method: get
+          cors: true
+  getUploads:
+    handler: handlers/get.Uploads
+    events:
+      - http:
+          path: /{username}/uploads
+          method: get
+          cors: true
+  postAvatar:
+    handler: handlers/post.Avatar
+    events:
+      - http:
+          path: /{username}
+          method: post
+          cors: true
+  postUploads:
+    handler: handlers/post.Uploads
+    events:
+      - http:
+          path: /{username}/uploads
+          method: post
+          cors: true
+  postCover:
+    handler: handlers/post.Cover
+    events:
+      - http:
+          path: /{username}/cover
+          method: post
+          cors: true
+
+
+plugins:
+  - serverless-plugin-optimize
+  - serverless-offline
+
+package:
+  individually: true
