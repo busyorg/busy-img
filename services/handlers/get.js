@@ -40,11 +40,13 @@ function getOptions(queryStringParameters, defaultParameters) {
     queryStringParameters.width = queryStringParameters.width || queryStringParameters.w || queryStringParameters.size;
     queryStringParameters.height = queryStringParameters.height || queryStringParameters.h || queryStringParameters.size;
     queryStringParameters.default = queryStringParameters.default || queryStringParameters.d;
+    queryStringParameters.crop = queryStringParameters.crop || queryStringParameters.c;
+
     return {
-        size: queryStringParameters.size || queryStringParameters.size,
-        width: queryStringParameters.width || queryStringParameters.width,
-        height: queryStringParameters.height || queryStringParameters.height,
-        default: queryStringParameters.default || queryStringParameters.default
+        width: queryStringParameters.width || defaultParameters.width,
+        height: queryStringParameters.height || defaultParameters.height,
+        default: queryStringParameters.default || defaultParameters.default,
+        crop: queryStringParameters.crop || defaultParameters.crop
     };
 }
 
