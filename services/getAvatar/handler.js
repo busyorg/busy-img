@@ -96,6 +96,13 @@ module.exports.getCover = (event, context, callback) => {
         })
 }
 
+module.exports.getUploads = (event, context, callback) => {
+    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
+    cloudinary.api.resources_by_tag(username, function(result) {
+        callback(null, { statusCode: 200, body: JSON.stringify(result.resources) });
+    });
+}
+
 module.exports.postAvatar = (event, context, callback) => {
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const contentType = event.headers['Content-Type'] || event.headers['content-type'];
