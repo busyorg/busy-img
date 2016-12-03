@@ -38,7 +38,7 @@ function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
     });
 }
 
-module.exports.getAvatar = (event, context, callback) => {
+module.exports.Avatar = (event, context, callback) => {
     const defaultAvatar = '@steemconnect';
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const queryStringParameters = event.queryStringParameters || {};
@@ -67,7 +67,7 @@ module.exports.getAvatar = (event, context, callback) => {
         });
 };
 
-module.exports.getCover = (event, context, callback) => {
+module.exports.Cover = (event, context, callback) => {
     const defaultAvatar = '@steemconnect/cover';
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const queryStringParameters = event.queryStringParameters || {};
@@ -96,33 +96,9 @@ module.exports.getCover = (event, context, callback) => {
         })
 }
 
-module.exports.getUploads = (event, context, callback) => {
+module.exports.Uploads = (event, context, callback) => {
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     cloudinary.api.resources_by_tag(username, function(result) {
         callback(null, { statusCode: 200, body: JSON.stringify(result.resources) });
     });
-}
-
-module.exports.postAvatar = (event, context, callback) => {
-    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
-    const contentType = event.headers['Content-Type'] || event.headers['content-type'];
-    cloudinary.uploader.upload(`data:${contentType};base64,${event.body}`, (result) => {
-        callback(null, { statusCode: 201, body: JSON.stringify(result) });
-    }, { public_id: username, tags: [username, 'profile_image'] });
-}
-
-module.exports.postCover = (event, context, callback) => {
-    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
-    const contentType = event.headers['Content-Type'] || event.headers['content-type'];
-    cloudinary.uploader.upload(`data:${contentType};base64,${event.body}`, (result) => {
-        callback(null, { statusCode: 201, body: JSON.stringify(result) });
-    }, { public_id: `${username}/cover`, tags: [username, 'cover_image'] });
-}
-
-module.exports.postUploads = (event, context, callback) => {
-    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
-    const contentType = event.headers['Content-Type'] || event.headers['content-type'];
-    cloudinary.uploader.upload(`data:${contentType};base64,${event.body}`, (result) => {
-        callback(null, { statusCode: 201, body: JSON.stringify(result) });
-    }, { tags: [username, 'general- upload'] });
 }

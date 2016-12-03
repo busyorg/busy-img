@@ -28,42 +28,42 @@ provider:
 
 functions:
   getAvatar:
-    handler: handler.getAvatar
+    handler: handlers/get.Avatar
     events:
       - http:
           path: /{username}
           method: get
           cors: true
   getCover:
-    handler: handler.getCover
+    handler: handlers/get.Cover
     events:
       - http:
           path: /{username}/cover
           method: get
           cors: true
   getUploads:
-    handler: handler.getUploads
+    handler: handlers/get.Uploads
     events:
       - http:
           path: /{username}/uploads
           method: get
           cors: true
   postAvatar:
-    handler: handler.postAvatar
+    handler: handlers/post.Avatar
     events:
       - http:
           path: /{username}
           method: post
           cors: true
   postUploads:
-    handler: handler.postUploads
+    handler: handlers/post.Uploads
     events:
       - http:
           path: /{username}/uploads
           method: post
           cors: true
   postCover:
-    handler: handler.postCover
+    handler: handlers/post.Cover
     events:
       - http:
           path: /{username}/cover
