@@ -40,7 +40,7 @@ function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
 
 module.exports.getAvatar = (event, context, callback) => {
     const defaultAvatar = '@steemconnect';
-    const username = event.pathParameters.username;
+    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const queryStringParameters = event.queryStringParameters || {};
     const width = queryStringParameters.width || queryStringParameters.size || 128;
     const height = queryStringParameters.height || queryStringParameters.size || 128;
@@ -69,7 +69,7 @@ module.exports.getAvatar = (event, context, callback) => {
 
 module.exports.getCover = (event, context, callback) => {
     const defaultAvatar = '@steemconnect/cover';
-    const username = event.pathParameters.username;
+    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const queryStringParameters = event.queryStringParameters || {};
     const width = queryStringParameters.width || queryStringParameters.size || 850;
     const height = queryStringParameters.height || queryStringParameters.size || 300;
@@ -97,16 +97,15 @@ module.exports.getCover = (event, context, callback) => {
 }
 
 module.exports.postAvatar = (event, context, callback) => {
-    let username = event.pathParameters.username;
+    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const contentType = event.headers['Content-Type'] || event.headers['content-type'];
-    console.log('event', event.isBase64Encoded);
     cloudinary.uploader.upload(`data:${contentType};base64,${event.body}`, (result) => {
         callback(null, { statusCode: 201, body: JSON.stringify(result) });
     }, { public_id: username, tags: [username, 'profile_image'] });
 }
 
 module.exports.postCover = (event, context, callback) => {
-    let username = event.pathParameters.username;
+    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const contentType = event.headers['Content-Type'] || event.headers['content-type'];
     cloudinary.uploader.upload(`data:${contentType};base64,${event.body}`, (result) => {
         callback(null, { statusCode: 201, body: JSON.stringify(result) });
@@ -114,7 +113,7 @@ module.exports.postCover = (event, context, callback) => {
 }
 
 module.exports.postUploads = (event, context, callback) => {
-    let username = event.pathParameters.username;
+    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const contentType = event.headers['Content-Type'] || event.headers['content-type'];
     cloudinary.uploader.upload(`data:${contentType};base64,${event.body}`, (result) => {
         callback(null, { statusCode: 201, body: JSON.stringify(result) });
