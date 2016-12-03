@@ -22,11 +22,12 @@ provider:
   runtime: nodejs4.3
   memorySize: 128 # Overwrite the default memory size. Default is 1024
   timeout: 5 # The default is 6
+  stage: dev
   environment:
     CLOUDINARY_URL: ${env:CLOUDINARY_URL}
 
 # you can overwrite defaults here
-#  stage: dev
+# 
 #  region: us-east-1
 
 # you can add statements to the Lambda function's IAM Role here
@@ -72,6 +73,27 @@ functions:
           path: /{username}/cover
           method: get
           cors: true
+  postAvatar:
+    handler: handler.postAvatar
+    events:
+      - http:
+          path: /{username}
+          method: post
+          cors: true
+  postUploads:
+    handler: handler.postUploads
+    events:
+      - http:
+          path: /{username}/uploads
+          method: post
+          cors: true
+  postCover:
+    handler: handler.postCover
+    events:
+      - http:
+          path: /{username}/cover
+          method: post
+          cors: true
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
@@ -96,5 +118,9 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
-# plugins:
-# - serverless-offline
+plugins:
+  - serverless-plugin-optimize
+  - serverless-offline
+
+package:
+  individually: true
