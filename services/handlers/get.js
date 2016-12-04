@@ -60,7 +60,8 @@ function uploadToS3(imgBuffer, options, url) {
 }
 
 function getDefaultImg(name, options) {
-    return `https://${s3.endpoint.hostname}/${imgBucket}/${name}`;
+    return options.default || cloudinary.url(name, options);
+    // return `https://${s3.endpoint.hostname}/${imgBucket}/${name}`;
 }
 
 function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
@@ -82,7 +83,7 @@ function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
 }
 
 module.exports.Avatar = (event, context, callback) => {
-    const defaultAvatar = '@steemconnect.png';
+    const defaultAvatar = '@steemconnect';
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const options = getOptions(event.queryStringParameters, { width: 128, height: 128, crop: 'fill', username });
     request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
@@ -111,7 +112,7 @@ module.exports.Avatar = (event, context, callback) => {
 };
 
 module.exports.Cover = (event, context, callback) => {
-    const defaultAvatar = '@steemconnect_cover.png';
+    const defaultAvatar = '@steemconnect/cover';
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const options = getOptions(event.queryStringParameters, { width: 850, height: 300, crop: 'fill', username });
     request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
