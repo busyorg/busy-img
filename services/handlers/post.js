@@ -29,5 +29,5 @@ module.exports.Uploads = (event, context, callback) => {
     const contentType = event.headers['Content-Type'] || event.headers['content-type'];
     cloudinary.uploader.upload(`data:${contentType};base64,${event.body}`, (result) => {
         sendResult(result, callback);
-    }, { tags: [username, 'general- upload'] });
+    }, { tags: [username, 'general-upload'] });
 }
