@@ -23,8 +23,16 @@ provider:
   memorySize: 256 # Overwrite the default memory size. Default is 1024
   timeout: 15 # The default is 6
   stage: dev
+  iamRoleStatements:
+  - Effect: Allow
+    Action:
+    - s3:PutObjectAcl
+    - s3:putObject
+    - s3:getObject
+    Resource: '*'
   environment:
     CLOUDINARY_URL: ${env:CLOUDINARY_URL}
+    IMG_STEEMCONNECT_BUCKET: ${env:IMG_STEEMCONNECT_BUCKET}
 
 functions:
   getAvatar:
@@ -70,6 +78,13 @@ functions:
           method: post
           cors: true
 
+
+resources:
+  Resources:
+    NewResource:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${env:IMG_STEEMCONNECT_BUCKET}
 
 plugins:
   - serverless-plugin-optimize

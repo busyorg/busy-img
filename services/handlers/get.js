@@ -1,61 +1,93 @@
 'use strict';
 // var steem = require('steem');
+const Promise = require('bluebird');
 var cloudinary = require('cloudinary');
 var request = require('request');
+var fs = require('fs');
+const rp = require('request-promise');
+const gm = require('gm').subClass({ imageMagick: true });
+Promise.promisifyAll(gm.prototype);
+const path = require('path');
+const tmpFile = path.join(require('os').tmpdir(), 'overwrite');
+const AWS = require('aws-sdk');
+const s3 = Promise.promisifyAll(new AWS.S3());
+const {getOptions, getFileName} = require('./utils');
+const imgBucket = process.env.IMG_STEEMCONNECT_BUCKET;
 
-function showImage(url) {
-    return new Promise(function (resolve, reject) {
+function showImage(url, options) {
+    return new Promise(function(resolve, reject) {
         if (url) {
-            request.get(url).on('response', function (response) {
-                var contentType = response.headers['content-type'] || '';
-                if (response.statusCode == 200 && contentType.search('image') === 0) {
-                    return resolve(url);
-                } else {
-                    return reject(new Error('Img not found'));
-                }
-            });
+            const before = Date.now();
+            let fetched;
+            let processed;
+            console.log(options);
+            return rp({ uri: url, encoding: null, }) //gm.thumb forces u to output file :(
+                .then((body) => {
+                    fetched = Date.now();
+                    console.log('fetched in ', fetched - before);
+                    console.log(options.width, options.height);
+                    return gm(body).thumbAsync(options.width, options.height, tmpFile, 85, 'center')
+                }).then(() => {
+                    const imgBuffer = fs.readFileSync(tmpFile);
+                    processed = Date.now();
+                    console.log('processed', processed - fetched);
+                    console.log('total', processed - before);
+                    return uploadToS3(imgBuffer, options, url);
+                }).then((newUrl) => {
+                    console.log('uploaded in ', Date.now() - processed);
+                    console.log('total in ', Date.now() - before);
+                    return resolve(newUrl);
+                })
         } else {
             return reject(new Error('invalid url not found'))
         }
     });
 }
 
+function uploadToS3(imgBuffer, options, url) {
+    console.log(process.env.IMG_STEEMCONNECT_BUCKET, url)
+    const key = [options.username, getFileName(url, options) + '.jpg'].join('/');
+    const params = {
+        Bucket: imgBucket,
+        Key: key,
+        ACL: 'public-read',
+        Body: imgBuffer,
+        ContentType: 'image/jpeg'
+    };
+
+    return s3.putObjectAsync(params)
+        .then(() => `https://${s3.endpoint.hostname}/${imgBucket}/${key}`)
+}
+
 function getDefaultImg(name, options) {
     return options.default || cloudinary.url(name, options);
+    // return `https://${s3.endpoint.hostname}/${imgBucket}/${name}`;
 }
 
 function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
-    var fetchOptions = Object.assign({}, options, { type: 'fetch', sign_url: true, defaultAvatar: defaultAvatar });
-    var newUrl = cloudinary.url(url, fetchOptions);
-    return showImage(newUrl, cb).catch(function (e) {
-        cb(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
-    }).then((url) => {
-        cb(null, { statusCode: 302, headers: { Location: url } });
-    });
-}
-
-function getOptions(queryStringParameters, defaultParameters) {
-    queryStringParameters = queryStringParameters || {};
-    queryStringParameters.size = queryStringParameters.size || queryStringParameters.s;
-    queryStringParameters.width = queryStringParameters.width || queryStringParameters.w || queryStringParameters.size;
-    queryStringParameters.height = queryStringParameters.height || queryStringParameters.h || queryStringParameters.size;
-    queryStringParameters.default = queryStringParameters.default || queryStringParameters.d;
-    queryStringParameters.crop = queryStringParameters.crop || queryStringParameters.c;
-
-    return {
-        width: queryStringParameters.width || defaultParameters.width,
-        height: queryStringParameters.height || defaultParameters.height,
-        default: queryStringParameters.default || defaultParameters.default,
-        crop: queryStringParameters.crop || defaultParameters.crop
-    };
+    const key = [options.username, getFileName(url, options) + '.jpg'].join('/');
+    const params = { Bucket: imgBucket, Key: key };
+    console.log('url', url, key);
+    return s3.getObjectAsync(params)
+        .then((data) => {
+            console.log('data', data.ContentLength);
+            cb(null, { statusCode: 302, headers: { Location: `https://${s3.endpoint.hostname}/${imgBucket}/${key}` } });
+        }).catch((err => {
+            console.log('err', err.statusCode);
+            return showImage(url, options).catch(function(e) {
+                cb(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
+            }).then((url) => {
+                cb(null, { statusCode: 302, headers: { Location: url } });
+            });
+        }))
 }
 
 module.exports.Avatar = (event, context, callback) => {
     const defaultAvatar = '@steemconnect';
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
-    const options = getOptions(event.queryStringParameters, { width: 128, height: 128, crop: 'fill' });
+    const options = getOptions(event.queryStringParameters, { width: 128, height: 128, crop: 'fill', username });
     request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
-        function (error, response, body) {
+        function(error, response, body) {
             var profile_image;
             if (body.length !== 0) {
                 try {
@@ -72,6 +104,7 @@ module.exports.Avatar = (event, context, callback) => {
                 } catch (e) {
                     callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
                 }
+
             } else {
                 callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
             }
@@ -81,9 +114,9 @@ module.exports.Avatar = (event, context, callback) => {
 module.exports.Cover = (event, context, callback) => {
     const defaultAvatar = '@steemconnect/cover';
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
-    const options = getOptions(event.queryStringParameters, { width: 850, height: 300, crop: 'fill' });
+    const options = getOptions(event.queryStringParameters, { width: 850, height: 300, crop: 'fill', username });
     request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
-        function (error, response, body) {
+        function(error, response, body) {
             var cover_image;
             if (body.length !== 0) {
                 try {
@@ -108,7 +141,7 @@ module.exports.Cover = (event, context, callback) => {
 
 module.exports.Uploads = (event, context, callback) => {
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
-    cloudinary.api.resources_by_tag(username, function (result) {
+    cloudinary.api.resources_by_tag(username, function(result) {
         callback(null, { statusCode: 200, body: JSON.stringify(result.resources) });
     });
 }
