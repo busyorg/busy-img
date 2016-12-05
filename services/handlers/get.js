@@ -11,11 +11,12 @@ const path = require('path');
 const tmpFile = path.join(require('os').tmpdir(), 'overwrite');
 const AWS = require('aws-sdk');
 const s3 = Promise.promisifyAll(new AWS.S3());
-const {getOptions, getFileName} = require('./utils');
+const {getOptions, uploadToS3, getFileName} = require('./utils');
 const imgBucket = process.env.IMG_STEEMCONNECT_BUCKET;
 
+console.log('tmpFile', tmpFile);
 function showImage(url, options) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (url) {
             const before = Date.now();
             let fetched;
@@ -25,14 +26,13 @@ function showImage(url, options) {
                 .then((body) => {
                     fetched = Date.now();
                     console.log('fetched in ', fetched - before);
-                    console.log(options.width, options.height);
                     return gm(body).thumbAsync(options.width, options.height, tmpFile, 85, 'center')
                 }).then(() => {
                     const imgBuffer = fs.readFileSync(tmpFile);
                     processed = Date.now();
                     console.log('processed', processed - fetched);
-                    console.log('total', processed - before);
-                    return uploadToS3(imgBuffer, options, url);
+                    const s3Key = [options.username, getFileName(url, options) + '.jpg'].join('/');
+                    return uploadToS3(imgBuffer, s3Key);
                 }).then((newUrl) => {
                     console.log('uploaded in ', Date.now() - processed);
                     console.log('total in ', Date.now() - before);
@@ -44,20 +44,6 @@ function showImage(url, options) {
     });
 }
 
-function uploadToS3(imgBuffer, options, url) {
-    console.log(process.env.IMG_STEEMCONNECT_BUCKET, url)
-    const key = [options.username, getFileName(url, options) + '.jpg'].join('/');
-    const params = {
-        Bucket: imgBucket,
-        Key: key,
-        ACL: 'public-read',
-        Body: imgBuffer,
-        ContentType: 'image/jpeg'
-    };
-
-    return s3.putObjectAsync(params)
-        .then(() => `https://${s3.endpoint.hostname}/${imgBucket}/${key}`)
-}
 
 function getDefaultImg(name, options) {
     return options.default || cloudinary.url(name, options);
@@ -74,7 +60,7 @@ function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
             cb(null, { statusCode: 302, headers: { Location: `https://${s3.endpoint.hostname}/${imgBucket}/${key}` } });
         }).catch((err => {
             console.log('err', err.statusCode);
-            return showImage(url, options).catch(function(e) {
+            return showImage(url, options).catch(function (e) {
                 cb(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
             }).then((url) => {
                 cb(null, { statusCode: 302, headers: { Location: url } });
@@ -87,7 +73,7 @@ module.exports.Avatar = (event, context, callback) => {
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const options = getOptions(event.queryStringParameters, { width: 128, height: 128, crop: 'fill', username });
     request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
-        function(error, response, body) {
+        function (error, response, body) {
             var profile_image;
             if (body.length !== 0) {
                 try {
@@ -116,7 +102,7 @@ module.exports.Cover = (event, context, callback) => {
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
     const options = getOptions(event.queryStringParameters, { width: 850, height: 300, crop: 'fill', username });
     request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
-        function(error, response, body) {
+        function (error, response, body) {
             var cover_image;
             if (body.length !== 0) {
                 try {
@@ -141,7 +127,7 @@ module.exports.Cover = (event, context, callback) => {
 
 module.exports.Uploads = (event, context, callback) => {
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
-    cloudinary.api.resources_by_tag(username, function(result) {
+    cloudinary.api.resources_by_tag(username, function (result) {
         callback(null, { statusCode: 200, body: JSON.stringify(result.resources) });
     });
 }
