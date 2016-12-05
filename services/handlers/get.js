@@ -14,33 +14,33 @@ const s3 = Promise.promisifyAll(new AWS.S3());
 const {getOptions, uploadToS3, getFileName} = require('./utils');
 const imgBucket = process.env.IMG_STEEMCONNECT_BUCKET;
 
-console.log('tmpFile', tmpFile);
 function showImage(url, options) {
     return new Promise(function (resolve, reject) {
-        if (url) {
-            const before = Date.now();
-            let fetched;
-            let processed;
-            console.log(options);
-            return rp({ uri: url, encoding: null, }) //gm.thumb forces u to output file :(
-                .then((body) => {
-                    fetched = Date.now();
-                    console.log('fetched in ', fetched - before);
-                    return gm(body).thumbAsync(options.width, options.height, tmpFile, 85, 'center')
-                }).then(() => {
-                    const imgBuffer = fs.readFileSync(tmpFile);
-                    processed = Date.now();
-                    console.log('processed', processed - fetched);
-                    const s3Key = [options.username, getFileName(url, options) + '.jpg'].join('/');
-                    return uploadToS3(imgBuffer, s3Key);
-                }).then((newUrl) => {
-                    console.log('uploaded in ', Date.now() - processed);
-                    console.log('total in ', Date.now() - before);
-                    return resolve(newUrl);
-                })
-        } else {
+        const before = Date.now();
+        let processed;
+        console.log(options);
+        if (!url || url.length === 0) {
             return reject(new Error('invalid url not found'))
         }
+        return rp({ uri: url, encoding: null, }) //gm.thumb forces u to output file :(
+            .then((body) => {
+                return gm(body).thumbAsync(options.width, options.height, tmpFile, 85, 'center')
+            }).then(() => {
+                const imgBuffer = fs.readFileSync(tmpFile);
+                processed = Date.now();
+                if (imgBuffer.length === 0) {
+                    return reject(new Error('not processable'));
+                }
+                const s3Key = [options.username, getFileName(url, options) + '.jpg'].join('/');
+                return uploadToS3(imgBuffer, s3Key);
+            }).then((newUrl) => {
+                console.log('uploaded in ', Date.now() - processed);
+                console.log('total in ', Date.now() - before);
+                return resolve(newUrl);
+            }).catch((err) => {
+                console.log('err', err);
+                return reject(new Error('invalid url not found'))
+            })
     });
 }
 
@@ -56,10 +56,8 @@ function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
     console.log('url', url, key);
     return s3.getObjectAsync(params)
         .then((data) => {
-            console.log('data', data.ContentLength);
             cb(null, { statusCode: 302, headers: { Location: `https://${s3.endpoint.hostname}/${imgBucket}/${key}` } });
         }).catch((err => {
-            console.log('err', err.statusCode);
             return showImage(url, options).catch(function (e) {
                 cb(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
             }).then((url) => {
@@ -127,7 +125,14 @@ module.exports.Cover = (event, context, callback) => {
 
 module.exports.Uploads = (event, context, callback) => {
     const username = event.pathParameters.username.match(/@?(\w+)/)[1];
-    cloudinary.api.resources_by_tag(username, function (result) {
-        callback(null, { statusCode: 200, body: JSON.stringify(result.resources) });
-    });
+    const params = { Bucket: imgBucket, Prefix: username };
+    return s3.listObjectsV2Async(params)
+        .then((data) => {
+            const listOfItems = data.Contents.map((object) => `https://${s3.endpoint.hostname}/${imgBucket}/${object.Key}`);
+            callback(null, { statusCode: 200, body: JSON.stringify(listOfItems) });
+        })
+        .catch((err) => {
+            console.log('err', err);
+            callback(null, { statusCode: 200, body: JSON.stringify({}) });
+        })
 }

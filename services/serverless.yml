@@ -27,8 +27,9 @@ provider:
   - Effect: Allow
     Action:
     - s3:PutObjectAcl
-    - s3:putObject
-    - s3:getObject
+    - s3:GetObject
+    - s3:PutObject
+    - s3:ListBucket
     Resource: '*'
   environment:
     CLOUDINARY_URL: ${env:CLOUDINARY_URL}
