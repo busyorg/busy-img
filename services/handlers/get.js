@@ -46,7 +46,7 @@ function showImage(url, options) {
 
 
 function getDefaultImg(name, options) {
-    return options.default || cloudinary.url(name, options);
+    return options.default || cloudinary.url(name, Object.assign({}, options, { secure: true }));
     // return `https://${s3.endpoint.hostname}/${imgBucket}/${name}`;
 }
 
