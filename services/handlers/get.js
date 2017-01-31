@@ -24,7 +24,13 @@ function showImage(url, options) {
         }
         return rp({ uri: url, encoding: null, }) //gm.thumb forces u to output file :(
             .then((body) => {
-                return gm(body).thumbAsync(options.width, options.height, tmpFile, 95, 'center')
+                return gm(body)
+                    .quality(95)
+                    .resize(options.width, options.height, "^")
+                    .gravity("Center")
+                    .extent(options.width, options.height)
+                    .noProfile()
+                    .writeAsync(tmpFile);
             }).then(() => {
                 const imgBuffer = fs.readFileSync(tmpFile);
                 processed = Date.now();
