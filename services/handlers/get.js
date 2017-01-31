@@ -73,7 +73,7 @@ module.exports.Avatar = (event, context, callback) => {
     request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
         function (error, response, body) {
             var profile_image;
-            if (body.length !== 0) {
+            if (body && body.length !== 0) {
                 try {
                     var json_metadata = body[0].json_metadata;
                     if (json_metadata.length) {
@@ -102,7 +102,7 @@ module.exports.Cover = (event, context, callback) => {
     request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
         function (error, response, body) {
             var cover_image;
-            if (body.length !== 0) {
+            if (body && body.length !== 0) {
                 try {
                     var json_metadata = body[0].json_metadata;
                     if (json_metadata.length) {
