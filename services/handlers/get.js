@@ -68,7 +68,7 @@ function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
 
 module.exports.Avatar = (event, context, callback) => {
     const defaultAvatar = '@steemconnect';
-    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
+    const username = event.pathParameters.username.match(/@?([\w-.]+)/)[1];
     const options = getOptions(event.queryStringParameters, { width: 128, height: 128, crop: 'fill', username });
     request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
         function (error, response, body) {
@@ -97,7 +97,7 @@ module.exports.Avatar = (event, context, callback) => {
 
 module.exports.Cover = (event, context, callback) => {
     const defaultAvatar = '@steemconnect/cover';
-    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
+    const username = event.pathParameters.username.match(/@?([\w-.]+)/)[1];
     const options = getOptions(event.queryStringParameters, { width: 850, height: 300, crop: 'fill', username });
     request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
         function (error, response, body) {
@@ -124,7 +124,7 @@ module.exports.Cover = (event, context, callback) => {
 }
 
 module.exports.Uploads = (event, context, callback) => {
-    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
+    const username = event.pathParameters.username.match(/@?([\w-.]+)/)[1];
     const params = { Bucket: imgBucket, Prefix: username };
     return s3.listObjectsV2Async(params)
         .then((data) => {

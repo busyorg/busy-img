@@ -21,19 +21,19 @@ function processImage(buffer, key, callback) {
 }
 
 module.exports.Avatar = (event, context, callback) => {
-    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
+    const username = event.pathParameters.username.match(/@?([\w-.]+)/)[1];
     const s3Key = [username, `${getFileName('profile_image' + Math.random())}.jpg`].join('/');
     processImage(new Buffer(event.body, 'base64'), s3Key, callback);
 }
 
 module.exports.Cover = (event, context, callback) => {
-    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
+    const username = event.pathParameters.username.match(/@?([\w-.]+)/)[1];
     const s3Key = [username, `${getFileName('cover_image' + Math.random())}.jpg`].join('/');
     processImage(new Buffer(event.body, 'base64'), s3Key, callback);
 }
 
 module.exports.Uploads = (event, context, callback) => {
-    const username = event.pathParameters.username.match(/@?(\w+)/)[1];
+    const username = event.pathParameters.username.match(/@?([\w-.]+)/)[1];
     const s3Key = [username, `${getFileName('general-upload' + Math.random())}.jpg`].join('/');
     processImage(new Buffer(event.body, 'base64'), s3Key, callback);
 }
