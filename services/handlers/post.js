@@ -7,7 +7,7 @@ Promise.promisifyAll(gm.prototype);
 function processImage(buffer, key, callback) {
     gm(new Buffer(buffer, 'base64'))
         .compress('jpeg')
-        .toBuffer('jpg', (err, newBuffer) => {
+        .toBuffer('png', (err, newBuffer) => {
             if (err)
                 callback(null, {
                     statusCode: 500, headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(err)
@@ -22,18 +22,18 @@ function processImage(buffer, key, callback) {
 
 module.exports.Avatar = (event, context, callback) => {
     const username = event.pathParameters.username.match(/@?([\w-.]+)/)[1];
-    const s3Key = [username, `${getFileName('profile_image' + Math.random())}.jpg`].join('/');
+    const s3Key = [username, `${getFileName('profile_image' + Math.random())}.png`].join('/');
     processImage(new Buffer(event.body, 'base64'), s3Key, callback);
 }
 
 module.exports.Cover = (event, context, callback) => {
     const username = event.pathParameters.username.match(/@?([\w-.]+)/)[1];
-    const s3Key = [username, `${getFileName('cover_image' + Math.random())}.jpg`].join('/');
+    const s3Key = [username, `${getFileName('cover_image' + Math.random())}.png`].join('/');
     processImage(new Buffer(event.body, 'base64'), s3Key, callback);
 }
 
 module.exports.Uploads = (event, context, callback) => {
     const username = event.pathParameters.username.match(/@?([\w-.]+)/)[1];
-    const s3Key = [username, `${getFileName('general-upload' + Math.random())}.jpg`].join('/');
+    const s3Key = [username, `${getFileName('general-upload' + Math.random())}.png`].join('/');
     processImage(new Buffer(event.body, 'base64'), s3Key, callback);
 }

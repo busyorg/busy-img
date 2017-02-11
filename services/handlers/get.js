@@ -28,6 +28,7 @@ function showImage(url, options) {
                     .quality(95)
                     .resize(options.width, options.height, "^")
                     .gravity("Center")
+                    .background('none').flatten()
                     .extent(options.width, options.height)
                     .noProfile()
                     .writeAsync(tmpFile);
@@ -37,7 +38,7 @@ function showImage(url, options) {
                 if (imgBuffer.length === 0) {
                     return reject(new Error('not processable'));
                 }
-                const s3Key = [options.username, getFileName(url, options) + '.jpg'].join('/');
+                const s3Key = [options.username, getFileName(url, options) + '.png'].join('/');
                 return uploadToS3(imgBuffer, s3Key);
             }).then((newUrl) => {
                 console.log('uploaded in ', Date.now() - processed);
@@ -57,7 +58,7 @@ function getDefaultImg(name, options) {
 }
 
 function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
-    const key = [options.username, getFileName(url, options) + '.jpg'].join('/');
+    const key = [options.username, getFileName(url, options) + '.png'].join('/');
     const params = { Bucket: imgBucket, Key: key };
     console.log('url', url, key);
     return s3.getObjectAsync(params)
