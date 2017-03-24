@@ -1,5 +1,4 @@
 'use strict';
-// var steem = require('steem');
 const Promise = require('bluebird');
 var cloudinary = require('cloudinary');
 var request = require('request');
@@ -11,7 +10,7 @@ const path = require('path');
 const tmpFile = path.join(require('os').tmpdir(), 'overwrite');
 const AWS = require('aws-sdk');
 const s3 = Promise.promisifyAll(new AWS.S3());
-const {getOptions, uploadToS3, getFileName} = require('./utils');
+const { getOptions, uploadToS3, getFileName } = require('./utils');
 const imgBucket = process.env.IMG_STEEMCONNECT_BUCKET;
 
 function showImage(url, options) {
@@ -51,6 +50,15 @@ function showImage(url, options) {
     });
 }
 
+function getProfile(username, cb) {
+    request.post({
+        url: 'https://steemd.steemit.com/',
+        body: { "id": 1, "method": "call", "params": [0, "get_accounts", [[username]]] },
+        json: true
+    }, function (error, response, body) {
+        cb(body.result && body.result[0])
+    });
+}
 
 function getDefaultImg(name, options) {
     return options.default || cloudinary.url(name, Object.assign({}, options, { secure: true }));
@@ -77,26 +85,21 @@ module.exports.Avatar = (event, context, callback) => {
     const defaultAvatar = '@steemconnect';
     const username = event.pathParameters.username.match(/@?([\w-.]+)/)[1];
     const options = getOptions(event.queryStringParameters, { width: 128, height: 128, crop: 'fill', username });
-    request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
-        function (error, response, body) {
+    getProfile(username,
+        function (body) {
             var profile_image;
-            if (body && body.length !== 0) {
-                try {
-                    var json_metadata = body[0].json_metadata;
-                    if (json_metadata.length) {
-                        json_metadata = JSON.parse(json_metadata);
-                        profile_image = json_metadata.profile && json_metadata.profile.profile_image;
-                    }
-                    if (profile_image) {
-                        showExternalImgOrDefault(profile_image, defaultAvatar, options, callback);
-                    } else {
-                        callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
-                    }
-                } catch (e) {
+            try {
+                var json_metadata = body.json_metadata;
+                if (json_metadata.length) {
+                    json_metadata = JSON.parse(json_metadata);
+                    profile_image = json_metadata.profile && json_metadata.profile.profile_image;
+                }
+                if (profile_image) {
+                    showExternalImgOrDefault(profile_image, defaultAvatar, options, callback);
+                } else {
                     callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
                 }
-
-            } else {
+            } catch (e) {
                 callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
             }
         });
@@ -106,25 +109,21 @@ module.exports.Cover = (event, context, callback) => {
     const defaultAvatar = '@steemconnect/cover';
     const username = event.pathParameters.username.match(/@?([\w-.]+)/)[1];
     const options = getOptions(event.queryStringParameters, { width: 850, height: 300, crop: 'fill', username });
-    request({ url: 'https://api.steemjs.com/getAccounts?names[]=' + username, json: true },
-        function (error, response, body) {
+    getProfile(username,
+        function (body) {
             var cover_image;
-            if (body && body.length !== 0) {
-                try {
-                    var json_metadata = body[0].json_metadata;
-                    if (json_metadata.length) {
-                        json_metadata = JSON.parse(json_metadata);
-                        cover_image = json_metadata.profile && json_metadata.profile.cover_image;
-                    }
-                    if (cover_image) {
-                        showExternalImgOrDefault(cover_image, defaultAvatar, options, callback);
-                    } else {
-                        callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
-                    }
-                } catch (e) {
+            try {
+                var json_metadata = body.json_metadata;
+                if (json_metadata.length) {
+                    json_metadata = JSON.parse(json_metadata);
+                    cover_image = json_metadata.profile && json_metadata.profile.cover_image;
+                }
+                if (cover_image) {
+                    showExternalImgOrDefault(cover_image, defaultAvatar, options, callback);
+                } else {
                     callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
                 }
-            } else {
+            } catch (e) {
                 callback(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
             }
         })
