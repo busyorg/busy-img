@@ -19,8 +19,8 @@ service: img-steemconnect
 
 provider:
   name: aws
-  runtime: nodejs4.3
-  memorySize: 256 # Overwrite the default memory size. Default is 1024
+  runtime: nodejs6.10
+  memorySize: 1024
   timeout: 15 # The default is 6
   stage: dev
   iamRoleStatements:
