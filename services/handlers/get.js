@@ -61,7 +61,10 @@ function getProfile(username, cb) {
 }
 
 function getDefaultImg(name, options) {
-    return options.default || cloudinary.url(name, Object.assign({}, options, { secure: true }));
+    if(options.default) {
+        return cloudinary.url(options.default, Object.assign({}, options, { secure: true, type:'fetch' }));
+    }
+    return cloudinary.url(name, Object.assign({}, options, { secure: true }));
     // return `https://${s3.endpoint.hostname}/${imgBucket}/${name}`;
 }
 
