@@ -12,6 +12,7 @@ const AWS = require('aws-sdk');
 const s3 = Promise.promisifyAll(new AWS.S3());
 const { getOptions, uploadToS3, getFileName } = require('./utils');
 const imgBucket = process.env.IMG_STEEMCONNECT_BUCKET;
+const FETCH_IMG_TIMEOUT = 8000;
 
 function showImage(url, options) {
     return new Promise(function (resolve, reject) {
@@ -21,7 +22,7 @@ function showImage(url, options) {
         if (!url || url.length === 0) {
             return reject(new Error('invalid url not found'))
         }
-        return rp({ uri: url, encoding: null, }) //gm.thumb forces u to output file :(
+        return rp({ uri: url, encoding: null, timeout: FETCH_IMG_TIMEOUT }) //gm.thumb forces u to output file :(
             .then((body) => {
                 return gm(body)
                     .quality(95)
@@ -60,7 +61,10 @@ function getProfile(username, cb) {
 }
 
 function getDefaultImg(name, options) {
-    return options.default || cloudinary.url(name, Object.assign({}, options, { secure: true }));
+    if(options.default) {
+        return cloudinary.url(options.default, Object.assign({}, options, { secure: true, type:'fetch' }));
+    }
+    return cloudinary.url(name, Object.assign({}, options, { secure: true }));
     // return `https://${s3.endpoint.hostname}/${imgBucket}/${name}`;
 }
 
