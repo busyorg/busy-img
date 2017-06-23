@@ -12,7 +12,7 @@ const AWS = require('aws-sdk');
 const s3 = Promise.promisifyAll(new AWS.S3());
 const { getOptions, uploadToS3, getFileName } = require('./utils');
 const imgBucket = process.env.IMG_STEEMCONNECT_BUCKET;
-const FETCH_IMG_TIMEOUT = 8000;
+const FETCH_IMG_TIMEOUT = 5000;
 
 function showImage(url, options) {
     return new Promise(function (resolve, reject) {
