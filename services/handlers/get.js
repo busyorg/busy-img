@@ -52,11 +52,12 @@ function showImage(url, options) {
 }
 
 function getProfile(username, cb) {
-    request.get({
-        url: `https://steemdb.com/api/account/${username}`,
+    request.post({
+        url: 'https://steemd.steemit.com/',
+        body: { "id": 1, "method": "call", "params": [0, "get_accounts", [[username]]] },
         json: true
     }, function (error, response, body) {
-        cb(body)
+        cb(body.result && body.result[0])
     });
 }
 
