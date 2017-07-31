@@ -6,6 +6,11 @@ var multipart = require('connect-multiparty');
 var steem = require('steem');
 var debug = require('debug')('steem-img');
 
+steem.api.setOptions({
+  transport: 'ws',
+  websocket: 'wss://steemd-int.steemit.com',
+});
+
 var multipartMiddleware = multipart();
 // 2000 calls an hour because we're on the Bronze plan, usually would be 500
 var cloudinaryRateLimiter = new limiter.RateLimiter(2000, 'hour');
