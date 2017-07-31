@@ -8,7 +8,7 @@ var debug = require('debug')('steem-img');
 
 steem.api.setOptions({
   transport: 'ws',
-  websocket: 'wss://steemd-int.steemit.com',
+  websocket: process.env.WS || 'wss://steemd-int.steemit.com',
 });
 
 var multipartMiddleware = multipart();
@@ -64,8 +64,8 @@ function showExternalImgOrDefault(url, res, defaultAvatar, options) {
 router.get('/@:username', function (req, res, next) {
   var username = req.params.username;
   console.log('getting userimag', username);
-  var width = req.query.width || req.query.size || 128;
-  var height = req.query.height || req.query.size || 128;
+  var width = req.query.width || req.query.w || req.query.size || req.query.s || 128;
+  var height = req.query.height ||req.query.h || req.query.size || req.query.s || 128;
   var crop = req.query.crop || 'fill';
   steem.api.getAccounts([username], function (err, result) {
     try {
@@ -78,12 +78,8 @@ router.get('/@:username', function (req, res, next) {
           profile_image = json_metadata.profile && json_metadata.profile.profile_image;
         }
       }
-
-      if (profile_image) {
-        return showExternalImgOrDefault(profile_image, res, defaultAvatar, options);
-      } else {
-        return defaultImg(res, defaultAvatar, options);
-      }
+      profile_image = profile_image || 'http://res.cloudinary.com/hpiynhbhq/image/upload/v1501526513/avatar_juzb7o.png';
+      return showExternalImgOrDefault(profile_image, res, defaultAvatar, options);
     } catch (e) {
       debug('error in get /@' + username, e);
       return defaultImg(res, defaultAvatar, options);
@@ -93,8 +89,8 @@ router.get('/@:username', function (req, res, next) {
 
 router.get('/@:username/cover', function (req, res, next) {
   var username = req.params.username;
-  var width = req.query.width || req.query.size || 850;
-  var height = req.query.height || req.query.size || 300;
+  var width = req.query.width || req.query.w || req.query.size || req.query.s || 850;
+  var height = req.query.height ||req.query.h || req.query.size || req.query.s || 300;
   var crop = req.query.crop || 'fill';
   steem.api.getAccounts([username], function (err, result) {
     try {
@@ -107,12 +103,8 @@ router.get('/@:username/cover', function (req, res, next) {
           cover_image = json_metadata.profile && json_metadata.profile.cover_image;
         }
       }
-
-      if (cover_image) {
-        return showExternalImgOrDefault(cover_image, res, defaultAvatar + '/cover', options);
-      } else {
-        return defaultImg(res, defaultAvatar + '/cover', options);
-      }
+      cover_image = cover_image || 'http://res.cloudinary.com/hpiynhbhq/image/upload/v1501527249/transparent_cliw8u.png';
+      return showExternalImgOrDefault(cover_image, res, defaultAvatar + '/cover', options);
     } catch (e) {
       return defaultImg(res, defaultAvatar + '/cover', options);
     }
