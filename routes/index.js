@@ -1,30 +1,31 @@
-var cloudinary = require('cloudinary');
-var express = require('express');
-var request = require('request');
-var limiter = require('limiter');
-var multipart = require('connect-multiparty');
-var steem = require('steem');
-var debug = require('debug')('steem-img');
+const cloudinary = require('cloudinary');
+const express = require('express');
+const request = require('request');
+const limiter = require('limiter');
+const multipart = require('connect-multiparty');
+const steem = require('steem');
+const debug = require('debug')('steem-avatar');
 
 steem.api.setOptions({
   transport: 'ws',
   websocket: process.env.WS || 'wss://steemd-int.steemit.com',
 });
 
-var multipartMiddleware = multipart();
+const multipartMiddleware = multipart();
 // 2000 calls an hour because we're on the Bronze plan, usually would be 500
-var cloudinaryRateLimiter = new limiter.RateLimiter(2000, 'hour');
-var router = express.Router();
+const cloudinaryRateLimiter = new limiter.RateLimiter(2000, 'hour');
+const router = express.Router();
 
-var defaultAvatar = '@steemconnect';
+const defaultAvatar = 'http://res.cloudinary.com/hpiynhbhq/image/upload/v1501526513/avatar_juzb7o.png';
+const defaultCover = 'http://res.cloudinary.com/hpiynhbhq/image/upload/v1501527249/transparent_cliw8u.png';
 
-function showImage(url, res) {
+const showImage = (url, res) => {
   debug('showImage', url);
   return new Promise(function (resolve, reject) {
     if (url) {
       request.get(url).on('response', function (response) {
         var contentType = response.headers['content-type'] || '';
-        if (response.statusCode == 200 && contentType.search('image') === 0) {
+        if (response.statusCode === 200 && contentType.search('image') === 0) {
           res.writeHead(200, { 'Content-Type': contentType });
           return resolve(response.pipe(res));
         } else {
@@ -37,78 +38,57 @@ function showImage(url, res) {
       return reject(new Error('invalid url not found'))
     }
   });
+};
 
-}
-
-function defaultImg(res, name, options) {
-  debug('show defaultImg', name);
-  var url = cloudinary.url(name, options);
-  res.writeHead(200, { 'Content-Type': 'image/png' });
-  request.get(url).pipe(res);
-}
-
-function showExternalImgOrDefault(url, res, defaultAvatar, options) {
-  var fetchOptions = Object.assign({}, options, {
+const renderExternalImage = (url, res, defaultImage, options) => {
+  const fetchOptions = Object.assign({}, options, {
     type: 'fetch',
     sign_url: true,
-    defaultAvatar: defaultAvatar
+    defaultImage,
   });
-
-  var newUrl = cloudinary.url(url, fetchOptions);
-
-  return showImage(newUrl, res).catch(function (e) {
-    return defaultImg(res, defaultAvatar, options);
+  const newUrl = cloudinary.url(url, fetchOptions);
+  return showImage(newUrl, res).catch(() => {
+    const failUrl = cloudinary.url(defaultImage, fetchOptions);
+    return showImage(failUrl, res);
   });
-}
+};
 
-router.get('/@:username', function (req, res, next) {
-  var username = req.params.username;
-  console.log('getting userimag', username);
-  var width = req.query.width || req.query.w || req.query.size || req.query.s || 128;
-  var height = req.query.height ||req.query.h || req.query.size || req.query.s || 128;
-  var crop = req.query.crop || 'fill';
-  steem.api.getAccounts([username], function (err, result) {
-    try {
-      var options = { width: width, height: height, crop: crop };
-      var profile_image;
-      if (!err && result.length !== 0) {
-        var json_metadata = result[0].json_metadata;
-        if (json_metadata.length) {
-          json_metadata = JSON.parse(json_metadata);
-          profile_image = json_metadata.profile && json_metadata.profile.profile_image;
-        }
-      }
-      profile_image = profile_image || 'http://res.cloudinary.com/hpiynhbhq/image/upload/v1501526513/avatar_juzb7o.png';
-      return showExternalImgOrDefault(profile_image, res, defaultAvatar, options);
-    } catch (e) {
-      debug('error in get /@' + username, e);
-      return defaultImg(res, defaultAvatar, options);
+router.get('/@:username', async (req, res) => {
+  const username = req.params.username;
+  const width = req.query.width || req.query.w || req.query.size || req.query.s || 128;
+  const height = req.query.height ||req.query.h || req.query.size || req.query.s || 128;
+  const crop = req.query.crop || 'fill';
+  const options = { width: width, height: height, crop: crop };
+  const [account] = await steem.api.getAccounts([username]);
+  let imageURL;
+  if (account) {
+    let jsonMetadata = account.json_metadata;
+    if (jsonMetadata.length) {
+      jsonMetadata = JSON.parse(jsonMetadata);
+      imageURL = jsonMetadata.profile && jsonMetadata.profile.profile_image;
     }
-  });
+  }
+  imageURL = imageURL || defaultAvatar;
+  return renderExternalImage(imageURL, res, defaultAvatar, options);
 });
 
-router.get('/@:username/cover', function (req, res, next) {
-  var username = req.params.username;
-  var width = req.query.width || req.query.w || req.query.size || req.query.s || 850;
-  var height = req.query.height ||req.query.h || req.query.size || req.query.s || 300;
-  var crop = req.query.crop || 'fill';
-  steem.api.getAccounts([username], function (err, result) {
-    try {
-      var options = { width: width, height: height, crop: crop };
-      var cover_image;
-      if (!err && result.length !== 0) {
-        var json_metadata = result[0].json_metadata;
-        if (json_metadata.length) {
-          json_metadata = JSON.parse(json_metadata);
-          cover_image = json_metadata.profile && json_metadata.profile.cover_image;
-        }
-      }
-      cover_image = cover_image || 'http://res.cloudinary.com/hpiynhbhq/image/upload/v1501527249/transparent_cliw8u.png';
-      return showExternalImgOrDefault(cover_image, res, defaultAvatar + '/cover', options);
-    } catch (e) {
-      return defaultImg(res, defaultAvatar + '/cover', options);
+router.get('/@:username/cover', async (req, res) => {
+  const username = req.params.username;
+  const width = req.query.width || req.query.w || req.query.size || req.query.s || 128;
+  const height = req.query.height ||req.query.h || req.query.size || req.query.s || 128;
+  const crop = req.query.crop || 'fill';
+  const options = { width: width, height: height, crop: crop };
+  const [account] = await steem.api.getAccounts([username]);
+  let imageURL;
+  if (account) {
+    let jsonMetadata = account.json_metadata;
+    if (jsonMetadata.length) {
+      jsonMetadata = JSON.parse(jsonMetadata);
+      imageURL = jsonMetadata.profile && jsonMetadata.profile.cover_image;
     }
-  });
+  }
+  imageURL = imageURL || defaultCover;
+  return renderExternalImage(imageURL, res, defaultAvatar, options);
 });
 
 router.post('/@:username', multipartMiddleware, function (req, res, next) {
