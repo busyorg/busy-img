@@ -10,7 +10,7 @@ const path = require('path');
 const tmpFile = path.join(require('os').tmpdir(), 'overwrite');
 const AWS = require('aws-sdk');
 const s3 = Promise.promisifyAll(new AWS.S3());
-const { getOptions, uploadToS3, getFileName } = require('./utils');
+const { getOptions, uploadToS3, getFileName, getS3Key } = require('./utils');
 const imgBucket = process.env.IMG_STEEMCONNECT_BUCKET;
 const FETCH_IMG_TIMEOUT = 5000;
 
@@ -18,10 +18,10 @@ function showImage(url, options) {
     return new Promise(function (resolve, reject) {
         const before = Date.now();
         let processed;
-        console.log(options);
         if (!url || url.length === 0) {
             return reject(new Error('invalid url not found'))
         }
+        console.log('showImg',url);
         return rp({ uri: url, encoding: null, timeout: FETCH_IMG_TIMEOUT }) //gm.thumb forces u to output file :(
             .then((body) => {
                 return gm(body)
@@ -38,14 +38,14 @@ function showImage(url, options) {
                 if (imgBuffer.length === 0) {
                     return reject(new Error('not processable'));
                 }
-                const s3Key = [options.username, getFileName(url, options) + '.png'].join('/');
-                return uploadToS3(imgBuffer, s3Key);
+                const s3Key = getS3Key(options.username, options);
+                return uploadToS3(imgBuffer, s3Key, true);
             }).then((newUrl) => {
                 console.log('uploaded in ', Date.now() - processed);
                 console.log('total in ', Date.now() - before);
                 return resolve(newUrl);
             }).catch((err) => {
-                console.log('err', err);
+                console.log('err in showImage', err);
                 return reject(new Error('invalid url not found'))
             })
     });
@@ -53,7 +53,7 @@ function showImage(url, options) {
 
 function getProfile(username, cb) {
     request.post({
-        url: 'https://steemd.steemit.com/',
+        url: 'https://steemd-int.steemit.com/',
         body: { "id": 1, "method": "call", "params": [0, "get_accounts", [[username]]] },
         json: true
     }, function (error, response, body) {
@@ -70,9 +70,10 @@ function getDefaultImg(name, options) {
 }
 
 function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
-    const key = [options.username, getFileName(url, options) + '.png'].join('/');
+    // const key = [options.username, getFileName(url, options) + '.png'].join('/');
+    const key = getS3Key(options.username, options);
     const params = { Bucket: imgBucket, Key: key };
-    console.log('url', url, key);
+    console.log('url', url, key, imgBucket);
     return s3.getObjectAsync(params)
         .then((data) => {
             cb(null, { statusCode: 302, headers: { Location: `https://${s3.endpoint.hostname}/${imgBucket}/${key}` } });
@@ -98,6 +99,7 @@ module.exports.Avatar = (event, context, callback) => {
                     json_metadata = JSON.parse(json_metadata);
                     profile_image = json_metadata.profile && json_metadata.profile.profile_image;
                 }
+                console.log('profile_image', profile_image);
                 if (profile_image) {
                     showExternalImgOrDefault(profile_image, defaultAvatar, options, callback);
                 } else {

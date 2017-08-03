@@ -20,7 +20,7 @@ service: img-steemconnect
 provider:
   name: aws
   runtime: nodejs6.10
-  memorySize: 1024
+  memorySize: 512
   timeout: 15 # The default is 6
   stage: dev
   iamRoleStatements:
@@ -29,6 +29,7 @@ provider:
     - s3:PutObjectAcl
     - s3:GetObject
     - s3:PutObject
+    - s3:PutObjectTagging
     - s3:ListBucket
     Resource: '*'
   environment:
@@ -89,7 +90,6 @@ resources:
 
 plugins:
   - serverless-plugin-optimize
-  - serverless-offline
 
 package:
   individually: true
