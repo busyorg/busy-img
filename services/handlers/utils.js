@@ -16,6 +16,7 @@ function getOptions(queryStringParameters, defaultParameters) {
         height: queryStringParameters.height || defaultParameters.height,
         default: queryStringParameters.default || defaultParameters.default,
         crop: queryStringParameters.crop || defaultParameters.crop,
+        cb: queryStringParameters.cb,
         username: defaultParameters.username
     };
 }

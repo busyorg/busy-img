@@ -73,17 +73,25 @@ function showExternalImgOrDefault(url, defaultAvatar, options, cb) {
     // const key = [options.username, getFileName(url, options) + '.png'].join('/');
     const key = getS3Key(options.username, options);
     const params = { Bucket: imgBucket, Key: key };
-    console.log('url', url, key, imgBucket);
-    return s3.getObjectAsync(params)
-        .then((data) => {
-            cb(null, { statusCode: 302, headers: { Location: `https://${s3.endpoint.hostname}/${imgBucket}/${key}` } });
-        }).catch((err => {
-            return showImage(url, options).catch(function (e) {
+    console.log('url', url, key, imgBucket, options);
+    if(options.cb){
+        return showImage(url, options).catch(function (e) {
+            cb(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
+        }).then((url) => {
+            cb(null, { statusCode: 302, headers: { Location: url } });
+        });
+    } else {
+        return s3.getObjectAsync(params)
+            .then((data) => {
+                cb(null, { statusCode: 302, headers: { Location: `https://${s3.endpoint.hostname}/${imgBucket}/${key}` } });
+            }).catch((err => {
+                return showImage(url, options).catch(function (e) {
                 cb(null, { statusCode: 302, headers: { Location: getDefaultImg(defaultAvatar, options) } });
             }).then((url) => {
                 cb(null, { statusCode: 302, headers: { Location: url } });
             });
         }))
+    }
 }
 
 module.exports.Avatar = (event, context, callback) => {
@@ -99,7 +107,6 @@ module.exports.Avatar = (event, context, callback) => {
                     json_metadata = JSON.parse(json_metadata);
                     profile_image = json_metadata.profile && json_metadata.profile.profile_image;
                 }
-                console.log('profile_image', profile_image);
                 if (profile_image) {
                     showExternalImgOrDefault(profile_image, defaultAvatar, options, callback);
                 } else {
