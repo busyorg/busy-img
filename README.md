@@ -1,4 +1,6 @@
-# Steem Avatar
+# Busy IMG
+
+## Avatar solution
 
 Parameters
 
@@ -10,6 +12,6 @@ Parameters
 
 Examples: 
 
-https://steem-avatar.herokuapp.com/@fabien?s=48  
-https://steem-avatar.herokuapp.com/@fabien?height=100&width=50  
-https://steem-avatar.herokuapp.com/@fabien?h=80&width=40  
+https://busy-img.herokuapp.com/@fabien?s=48  
+https://busy-img.herokuapp.com/@fabien?height=100&width=50  
+https://busy-img.herokuapp.com/@fabien?h=80&width=40  
