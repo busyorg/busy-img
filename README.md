@@ -14,9 +14,9 @@ Parameters
 
 Examples: 
 
-https://busy-img.herokuapp.com/@fabien?s=48  
-https://busy-img.herokuapp.com/@fabien?height=100&width=50  
-https://busy-img.herokuapp.com/@fabien?h=80&width=40  
+https://img.busy.org/@fabien?s=48  
+https://img.busy.org/@fabien?height=100&width=50  
+https://img.busy.org/@fabien?h=80&width=40  
 
 ## Cover
 
@@ -24,5 +24,5 @@ Default size is 850x350px
 
 Examples: 
 
-https://busy-img.herokuapp.com/@fabien/cover  
-https://busy-img.herokuapp.com/@fabien/cover?h=100&w=400  
+https://img.busy.org/@fabien/cover  
+https://img.busy.org/@fabien/cover?h=100&w=400  
