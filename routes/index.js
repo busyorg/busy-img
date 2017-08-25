@@ -4,7 +4,7 @@ const request = require('request');
 const limiter = require('limiter');
 const multipart = require('connect-multiparty');
 const steem = require('steem');
-const debug = require('debug')('steem-avatar');
+const debug = require('debug')('busy-img');
 
 steem.api.setOptions({
   transport: 'ws',
@@ -21,10 +21,10 @@ const defaultCover = 'http://res.cloudinary.com/hpiynhbhq/image/upload/v15015272
 
 const showImage = (url, res) => {
   debug('showImage', url);
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     if (url) {
-      request.get(url).on('response', function (response) {
-        var contentType = response.headers['content-type'] || '';
+      request.get(url).on('response', (response) => {
+        const contentType = response.headers['content-type'] || '';
         if (response.statusCode === 200 && contentType.search('image') === 0) {
           res.writeHead(200, { 'Content-Type': contentType });
           return resolve(response.pipe(res));
@@ -88,14 +88,14 @@ router.get('/@:username/cover', async (req, res) => {
     }
   }
   imageURL = imageURL || defaultCover;
-  return renderExternalImage(imageURL, res, defaultAvatar, options);
+  return renderExternalImage(imageURL, res, defaultCover, options);
 });
 
-router.post('/@:username', multipartMiddleware, function (req, res, next) {
-  var username = req.params.username;
-  var file = req.files;
-  var path = file[Object.keys(file)[0]].path;
-  cloudinary.uploader.upload(path, function (result) {
+router.post('/@:username', multipartMiddleware, (req, res, next) => {
+  const username = req.params.username;
+  const file = req.files;
+  const path = file[Object.keys(file)[0]].path;
+  cloudinary.uploader.upload(path, (result) => {
     res.json({ url: result.url });
   }, {
       public_id: '@' + username,
@@ -107,11 +107,11 @@ router.post('/@:username', multipartMiddleware, function (req, res, next) {
   delete req.files;
 });
 
-router.post('/@:username/cover', multipartMiddleware, function (req, res, next) {
-  var username = req.params.username;
-  var file = req.files;
-  var path = file[Object.keys(file)[0]].path;
-  cloudinary.uploader.upload(path, function (result) {
+router.post('/@:username/cover', multipartMiddleware, (req, res, next) => {
+  const username = req.params.username;
+  const file = req.files;
+  const path = file[Object.keys(file)[0]].path;
+  cloudinary.uploader.upload(path, (result) => {
     res.json({ url: result.url });
   }, {
       public_id: '@' + username + '/cover',
@@ -130,19 +130,19 @@ router.post('/@:username/cover', multipartMiddleware, function (req, res, next) 
  * multipart form file field
  */
 
-router.post('/@:username/uploads', multipartMiddleware, function (req, res, next) {
-  var username = req.params.username;
-  var files = req.files;
-  var keys = Object.keys(files);
+router.post('/@:username/uploads', multipartMiddleware, (req, res, next) => {
+  const username = req.params.username;
+  const files = req.files;
+  const keys = Object.keys(files);
 
   if (!keys[0]) {
-    var err = new Error('Missing a file parameter');
+    const err = new Error('Missing a file parameter');
     err.status = 422;
     return next(err);
   }
 
-  var path = files[keys[0]].path;
-  cloudinary.uploader.upload(path, function (result) {
+  const path = files[keys[0]].path;
+  cloudinary.uploader.upload(path, (result) => {
     res.status(201);
     res.json(result);
   }, {
@@ -159,13 +159,12 @@ router.post('/@:username/uploads', multipartMiddleware, function (req, res, next
  * Gets an user's uploads by querying cloudinary for its tag
  */
 
-router.get('/@:username/uploads', function (req, res, next) {
-  var username = req.params.username;
-  cloudinaryRateLimiter.removeTokens(1, function () {
+router.get('/@:username/uploads', (req, res, next) => {
+  const username = req.params.username;
+  cloudinaryRateLimiter.removeTokens(1, () => {
     // ^^ Error isn't relevant here, see
     // https://www.npmjs.com/package/limiter#usage
-
-    cloudinary.api.resources_by_tag('@' + username, function (result) {
+    cloudinary.api.resources_by_tag('@' + username, (result) => {
       res.json(result.resources);
     });
   });
