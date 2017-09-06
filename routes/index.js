@@ -76,7 +76,7 @@ router.get('/@:username/cover', async (req, res) => {
   const username = req.params.username;
   const width = req.query.width || req.query.w || req.query.size || req.query.s || 850;
   const height = req.query.height ||req.query.h || req.query.size || req.query.s || 350;
-  const crop = req.query.crop || 'fill';
+  const crop = req.query.crop || 'fit';
   const options = { width: width, height: height, crop: crop };
   const [account] = await steem.api.getAccounts([username]);
   let imageURL;
@@ -87,6 +87,7 @@ router.get('/@:username/cover', async (req, res) => {
       imageURL = jsonMetadata.profile && jsonMetadata.profile.cover_image;
     }
   }
+  console.log(imageURL);
   imageURL = imageURL || defaultCover;
   return renderExternalImage(imageURL, res, defaultCover, options);
 });
