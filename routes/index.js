@@ -87,7 +87,6 @@ router.get('/@:username/cover', async (req, res) => {
       imageURL = jsonMetadata.profile && jsonMetadata.profile.cover_image;
     }
   }
-  console.log(imageURL);
   imageURL = imageURL || defaultCover;
   return renderExternalImage(imageURL, res, defaultCover, options);
 });
