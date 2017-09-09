@@ -59,7 +59,14 @@ router.get('/@:username', async (req, res) => {
   const height = req.query.height ||req.query.h || req.query.size || req.query.s || 128;
   const crop = req.query.crop || 'fill';
   const options = { width: width, height: height, crop: crop };
-  const [account] = await steem.api.getAccounts([username]);
+
+  let account = [];
+  try {
+    [account] = await steem.api.getAccounts([username]);
+  } catch (e) {
+    console.log(e);
+  }
+
   let imageURL;
   if (account) {
     let jsonMetadata = account.json_metadata;
@@ -78,7 +85,14 @@ router.get('/@:username/cover', async (req, res) => {
   const height = req.query.height ||req.query.h || req.query.size || req.query.s || 350;
   const crop = req.query.crop || 'fit';
   const options = { width: width, height: height, crop: crop };
-  const [account] = await steem.api.getAccounts([username]);
+
+  let account = [];
+  try {
+    [account] = await steem.api.getAccounts([username]);
+  } catch (e) {
+    console.log(e);
+  }
+
   let imageURL;
   if (account) {
     let jsonMetadata = account.json_metadata;
