@@ -5,6 +5,7 @@ const limiter = require('limiter');
 const multipart = require('connect-multiparty');
 const steem = require('steem');
 const debug = require('debug')('busy-img');
+const { getAvatarURL } = require('../helpers');
 
 steem.api.setOptions({
   url: process.env.STEEMJS_URL || 'wss://steemd-int.steemit.com',
@@ -15,7 +16,6 @@ const multipartMiddleware = multipart();
 const cloudinaryRateLimiter = new limiter.RateLimiter(2000, 'hour');
 const router = express.Router();
 
-const defaultAvatar = 'http://res.cloudinary.com/hpiynhbhq/image/upload/v1501526513/avatar_juzb7o.png';
 const defaultCover = 'http://res.cloudinary.com/hpiynhbhq/image/upload/v1501527249/transparent_cliw8u.png';
 
 const showImage = (url, res) => {
@@ -55,8 +55,8 @@ const renderExternalImage = (url, res, defaultImage, options) => {
 router.get('/@:username', async (req, res) => {
   const username = req.params.username;
   const width = req.query.width || req.query.w || req.query.size || req.query.s || 128;
-  const height = req.query.height ||req.query.h || req.query.size || req.query.s || 128;
-  const defaultImage = req.query.default ||req.query.d || defaultAvatar;
+  const height = req.query.height || req.query.h || req.query.size || req.query.s || 128;
+  let defaultImage = req.query.default || req.query.d;
   const crop = req.query.crop || 'fill';
   const options = { width: width, height: height, crop: crop };
 
@@ -68,12 +68,15 @@ router.get('/@:username', async (req, res) => {
   }
 
   let imageURL;
-  if (account) {
+  if (account && account.id) {
+    defaultImage = defaultImage || getAvatarURL(account.id);
     let jsonMetadata = account.json_metadata;
     if (jsonMetadata.length) {
       jsonMetadata = JSON.parse(jsonMetadata);
       imageURL = jsonMetadata.profile && jsonMetadata.profile.profile_image;
     }
+  } else {
+    defaultImage = getAvatarURL(8);
   }
   imageURL = imageURL || defaultImage;
   return renderExternalImage(imageURL, res, defaultImage, options);
