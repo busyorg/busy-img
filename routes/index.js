@@ -57,6 +57,7 @@ router.get('/@:username', async (req, res) => {
   const username = req.params.username;
   const width = req.query.width || req.query.w || req.query.size || req.query.s || 128;
   const height = req.query.height ||req.query.h || req.query.size || req.query.s || 128;
+  const defaultImage = req.query.default ||req.query.d || defaultAvatar;
   const crop = req.query.crop || 'fill';
   const options = { width: width, height: height, crop: crop };
 
@@ -75,14 +76,15 @@ router.get('/@:username', async (req, res) => {
       imageURL = jsonMetadata.profile && jsonMetadata.profile.profile_image;
     }
   }
-  imageURL = imageURL || defaultAvatar;
-  return renderExternalImage(imageURL, res, defaultAvatar, options);
+  imageURL = imageURL || defaultImage;
+  return renderExternalImage(imageURL, res, defaultImage, options);
 });
 
 router.get('/@:username/cover', async (req, res) => {
   const username = req.params.username;
   const width = req.query.width || req.query.w || req.query.size || req.query.s || 850;
   const height = req.query.height ||req.query.h || req.query.size || req.query.s || 350;
+  const defaultImage = req.query.default ||req.query.d || defaultCover;
   const crop = req.query.crop || 'fit';
   const options = { width: width, height: height, crop: crop };
 
@@ -101,8 +103,8 @@ router.get('/@:username/cover', async (req, res) => {
       imageURL = jsonMetadata.profile && jsonMetadata.profile.cover_image;
     }
   }
-  imageURL = imageURL || defaultCover;
-  return renderExternalImage(imageURL, res, defaultCover, options);
+  imageURL = imageURL || defaultImage;
+  return renderExternalImage(imageURL, res, defaultImage, options);
 });
 
 router.post('/@:username', multipartMiddleware, (req, res, next) => {
