@@ -7,8 +7,7 @@ const steem = require('steem');
 const debug = require('debug')('busy-img');
 
 steem.api.setOptions({
-  transport: 'ws',
-  websocket: process.env.WS || 'wss://steemd-int.steemit.com',
+  url: process.env.STEEMJS_URL || 'wss://steemd-int.steemit.com',
 });
 
 const multipartMiddleware = multipart();
