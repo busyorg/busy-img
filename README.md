@@ -12,6 +12,8 @@ Parameters
 
 `width` or `w`
 
+`default` or `d` to set a default image if the avatar or cover is not available
+
 Examples: 
 
 https://img.busy.org/@fabien?s=48  
