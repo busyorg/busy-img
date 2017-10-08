@@ -22,7 +22,7 @@ https://img.busy.org/@fabien?h=80&width=40
 
 ## Cover
 
-Default size is 850x350px
+Default size is 1024x256px
 
 Examples: 
 

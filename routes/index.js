@@ -84,10 +84,10 @@ router.get('/@:username', async (req, res) => {
 
 router.get('/@:username/cover', async (req, res) => {
   const username = req.params.username;
-  const width = req.query.width || req.query.w || req.query.size || req.query.s || 850;
-  const height = req.query.height ||req.query.h || req.query.size || req.query.s || 350;
+  const width = req.query.width || req.query.w || req.query.size || req.query.s || 1024;
+  const height = req.query.height ||req.query.h || req.query.size || req.query.s || 256;
   const defaultImage = req.query.default ||req.query.d || defaultCover;
-  const crop = req.query.crop || 'fit';
+  const crop = req.query.crop || 'fill';
   const options = { width: width, height: height, crop: crop };
 
   let account = [];
