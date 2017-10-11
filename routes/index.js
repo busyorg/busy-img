@@ -22,6 +22,8 @@ const showImage = (url, res) => {
   debug('showImage', url);
   return new Promise((resolve, reject) => {
     if (url) {
+      res.redirect(url);
+      /*
       request.get(url).on('response', (response) => {
         const contentType = response.headers['content-type'] || '';
         if (response.statusCode === 200 && contentType.search('image') === 0) {
@@ -32,6 +34,7 @@ const showImage = (url, res) => {
           return reject(new Error('Img not found'));
         }
       });
+      */
     } else {
       debug('showImage invalid url not found', url);
       return reject(new Error('invalid url not found'))
