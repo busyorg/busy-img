@@ -22,19 +22,19 @@ const showImage = (url, res) => {
   debug('showImage', url);
   return new Promise((resolve, reject) => {
     if (url) {
-      res.redirect(url);
-      /*
       request.get(url).on('response', (response) => {
         const contentType = response.headers['content-type'] || '';
         if (response.statusCode === 200 && contentType.search('image') === 0) {
+          /*
           res.writeHead(200, { 'Content-Type': contentType });
           return resolve(response.pipe(res));
+          */
+          res.redirect(url);
         } else {
           debug('showImage Img not found', url, response.statusCode, contentType);
           return reject(new Error('Img not found'));
         }
       });
-      */
     } else {
       debug('showImage invalid url not found', url);
       return reject(new Error('invalid url not found'))
