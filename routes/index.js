@@ -16,7 +16,7 @@ const multipartMiddleware = multipart();
 const cloudinaryRateLimiter = new limiter.RateLimiter(2000, 'hour');
 const router = express.Router();
 
-const defaultCover = 'http://res.cloudinary.com/hpiynhbhq/image/upload/v1501527249/transparent_cliw8u.png';
+const defaultCover = 'https://res.cloudinary.com/hpiynhbhq/image/upload/v1501527249/transparent_cliw8u.png';
 
 const showImage = (url, res) => {
   debug('showImage', url);
