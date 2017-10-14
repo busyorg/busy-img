@@ -46,6 +46,7 @@ const renderExternalImage = (url, res, defaultImage, options) => {
   const fetchOptions = Object.assign({}, options, {
     type: 'fetch',
     sign_url: true,
+    secure: true,
     defaultImage,
   });
   const newUrl = cloudinary.url(url, fetchOptions);
