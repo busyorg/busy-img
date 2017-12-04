@@ -66,7 +66,7 @@ router.get('/@:username', async (req, res) => {
 
   let account = [];
   try {
-    [account] = await steem.api.getAccounts([username]);
+    [account] = await steem.api.getAccountsAsync([username]);
   } catch (e) {
     console.log(e);
   }
@@ -96,7 +96,7 @@ router.get('/@:username/cover', async (req, res) => {
 
   let account = [];
   try {
-    [account] = await steem.api.getAccounts([username]);
+    [account] = await steem.api.getAccountsAsync([username]);
   } catch (e) {
     console.log(e);
   }
