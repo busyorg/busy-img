@@ -9,6 +9,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "@steemit/steem-js": "^0.6.8",
     "body-parser": "~1.15.1",
     "cloudinary": "^1.4.1",
     "connect-multiparty": "^2.0.0",
@@ -18,7 +19,6 @@
     "limiter": "^1.1.0",
     "morgan": "~1.7.0",
     "raven": "^2.2.1",
-    "request": "^2.76.0",
-    "steem": "^0.6.4"
+    "request": "^2.76.0"
   }
 }

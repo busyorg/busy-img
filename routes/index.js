@@ -3,7 +3,7 @@ const express = require('express');
 const request = require('request');
 const limiter = require('limiter');
 const multipart = require('connect-multiparty');
-const steem = require('steem');
+const steem = require('@steemit/steem-js');
 const debug = require('debug')('busy-img');
 const { getAvatarURL } = require('../helpers');
 
@@ -66,7 +66,7 @@ router.get('/@:username', async (req, res) => {
 
   let account = [];
   try {
-    [account] = await steem.api.getAccounts([username]);
+    [account] = await steem.api.getAccountsAsync([username]);
   } catch (e) {
     console.log(e);
   }
@@ -96,7 +96,7 @@ router.get('/@:username/cover', async (req, res) => {
 
   let account = [];
   try {
-    [account] = await steem.api.getAccounts([username]);
+    [account] = await steem.api.getAccountsAsync([username]);
   } catch (e) {
     console.log(e);
   }
