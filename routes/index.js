@@ -3,13 +3,11 @@ const express = require('express');
 const request = require('request');
 const limiter = require('limiter');
 const multipart = require('connect-multiparty');
-const steem = require('@steemit/steem-js');
 const debug = require('debug')('busy-img');
-const { getAvatarURL } = require('../helpers');
+const { createClient } = require('steem-mini');
+const { getAvatarURL, getAccountsAsync } = require('../helpers');
 
-steem.api.setOptions({
-  url: process.env.STEEMJS_URL || 'wss://steemd-int.steemit.com',
-});
+const client = createClient(process.env.STEEMJS_URL || 'https://api.steemit.com/');
 
 const multipartMiddleware = multipart();
 // 2000 calls an hour because we're on the Bronze plan, usually would be 500
@@ -25,10 +23,8 @@ const showImage = (url, res) => {
       request.get(url).on('response', (response) => {
         const contentType = response.headers['content-type'] || '';
         if (response.statusCode === 200 && contentType.search('image') === 0) {
-          /*
-          res.writeHead(200, { 'Content-Type': contentType });
-          return resolve(response.pipe(res));
-          */
+          // res.writeHead(200, { 'Content-Type': contentType });
+          // return resolve(response.pipe(res));
           res.redirect(url);
         } else {
           debug('showImage Img not found', url, response.statusCode, contentType);
@@ -64,11 +60,11 @@ router.get('/@:username', async (req, res) => {
   const crop = req.query.crop || 'fill';
   const options = { width: width, height: height, crop: crop };
 
-  let account = [];
+  let account;
   try {
-    [account] = await steem.api.getAccountsAsync([username]);
+    [account] = await getAccountsAsync(client, [username]);
   } catch (e) {
-    console.log(e);
+    console.error('Error encountered while loading user profile', e);
   }
 
   let imageURL;
@@ -94,11 +90,11 @@ router.get('/@:username/cover', async (req, res) => {
   const crop = req.query.crop || 'mfit';
   const options = { width: width, height: height, crop: crop };
 
-  let account = [];
+  let account;
   try {
-    [account] = await steem.api.getAccountsAsync([username]);
+    [account] = await getAccountsAsync(client, [username]);
   } catch (e) {
-    console.log(e);
+    console.error('Error encountered while loading user profile', e);
   }
 
   let imageURL;

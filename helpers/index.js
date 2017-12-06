@@ -1,3 +1,16 @@
+const getAccountsAsync = (client, usernames) => new Promise((resolve, reject) => {
+  const message = {
+    method: 'get_accounts',
+    jsonrpc: '2.0',
+    params: [usernames]
+  };
+
+  client.send(message, function(err, result) {
+    if (err !== null) reject(err);
+    resolve(result);
+  });
+});
+
 const getAvatarURL = (id) => {
   const idLastDigit = id.toString().slice(-1);
   switch (idLastDigit) {
@@ -17,4 +30,5 @@ const getAvatarURL = (id) => {
 
 module.exports = {
   getAvatarURL,
+  getAccountsAsync,
 };
