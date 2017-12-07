@@ -31,7 +31,10 @@ const getImageLink = (url, defaultUrl, options) => {
   });
 
   return new Promise((resolve, reject) => {
-    request(url, function(err, response) {
+    request({
+      url,
+      timeout: 500,
+    }, function(err, response) {
       if (err) {
         resolve(cloudinary.url(defaultUrl, fetchOptions));
         return;
