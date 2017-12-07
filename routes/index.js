@@ -31,7 +31,7 @@ const getImageLink = (url, defaultUrl, options) => {
   });
 
   return new Promise((resolve, reject) => {
-    request({
+    request.head({
       url,
       timeout: 500,
     }, function(err, response) {
