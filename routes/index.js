@@ -14,41 +14,36 @@ const multipartMiddleware = multipart();
 const cloudinaryRateLimiter = new limiter.RateLimiter(2000, 'hour');
 const router = express.Router();
 
-const defaultCover = 'https://res.cloudinary.com/hpiynhbhq/image/upload/v1501527249/transparent_cliw8u.png';
+const defaultAvatar = getAvatarURL(8);
+const defaultCover =
+  'https://res.cloudinary.com/hpiynhbhq/image/upload/v1501527249/transparent_cliw8u.png';
 
-const showImage = (url, res) => {
-  debug('showImage', url);
-  return new Promise((resolve, reject) => {
-    if (url) {
-      request.get(url).on('response', (response) => {
-        const contentType = response.headers['content-type'] || '';
-        if (response.statusCode === 200 && contentType.search('image') === 0) {
-          // res.writeHead(200, { 'Content-Type': contentType });
-          // return resolve(response.pipe(res));
-          res.redirect(url);
-        } else {
-          debug('showImage Img not found', url, response.statusCode, contentType);
-          return reject(new Error('Img not found'));
-        }
-      });
-    } else {
-      debug('showImage invalid url not found', url);
-      return reject(new Error('invalid url not found'))
-    }
-  });
-};
+const getImageLink = (url, defaultUrl, options) => {
+  if (typeof url !== 'string') throw new Error('url has to be string');
+  if (typeof defaultUrl !== 'string')
+    throw new Error('defaultUrl has to be string');
+  if (typeof options !== 'object') throw new Error('options has to be object');
 
-const renderExternalImage = (url, res, defaultImage, options) => {
   const fetchOptions = Object.assign({}, options, {
     type: 'fetch',
     sign_url: true,
     secure: true,
-    defaultImage,
   });
-  const newUrl = cloudinary.url(url, fetchOptions);
-  return showImage(newUrl, res).catch(() => {
-    const failUrl = cloudinary.url(defaultImage, fetchOptions);
-    return showImage(failUrl, res);
+
+  return new Promise((resolve, reject) => {
+    request(url, function(err, response) {
+      if (err) {
+        resolve(cloudinary.url(defaultUrl, fetchOptions));
+        return;
+      }
+
+      const contentType = response.headers['content-type'] || '';
+      if (response.statusCode == 200 && /image\/./.test(contentType)) {
+        resolve(cloudinary.url(url, fetchOptions));
+      } else {
+        resolve(cloudinary.url(defaultUrl, fetchOptions));
+      }
+    });
   });
 };
 
@@ -56,7 +51,6 @@ router.get('/@:username', async (req, res) => {
   const username = req.params.username;
   const width = req.query.width || req.query.w || req.query.size || req.query.s || 128;
   const height = req.query.height || req.query.h || req.query.size || req.query.s || 128;
-  let defaultImage = req.query.default || req.query.d;
   const crop = req.query.crop || 'fill';
   const options = { width: width, height: height, crop: crop };
 
@@ -69,24 +63,26 @@ router.get('/@:username', async (req, res) => {
 
   let imageURL;
   if (account && account.id) {
-    defaultImage = defaultImage || getAvatarURL(account.id);
-    let jsonMetadata = account.json_metadata;
-    if (jsonMetadata.length) {
-      jsonMetadata = JSON.parse(jsonMetadata);
-      imageURL = jsonMetadata.profile && jsonMetadata.profile.profile_image;
+    try {
+      let jsonMetadata = account.json_metadata;
+      if (jsonMetadata.length) {
+        jsonMetadata = JSON.parse(jsonMetadata);
+        imageURL = jsonMetadata.profile && jsonMetadata.profile.profile_image;
+      }
+    } catch (e) {
+      console.error('Error encountered while retrieving profile image from json metadata');
     }
-  } else {
-    defaultImage = getAvatarURL(8);
   }
-  imageURL = imageURL || defaultImage;
-  return renderExternalImage(imageURL, res, defaultImage, options);
+
+  if (!imageURL) imageURL = defaultAvatar;
+
+  res.redirect(await getImageLink(imageURL, defaultAvatar, options));
 });
 
 router.get('/@:username/cover', async (req, res) => {
   const username = req.params.username;
   const width = req.query.width || req.query.w || req.query.size || req.query.s || 1024;
   const height = req.query.height ||req.query.h || req.query.size || req.query.s || 256;
-  const defaultImage = req.query.default ||req.query.d || defaultCover;
   const crop = req.query.crop || 'mfit';
   const options = { width: width, height: height, crop: crop };
 
@@ -94,19 +90,25 @@ router.get('/@:username/cover', async (req, res) => {
   try {
     [account] = await getAccountsAsync(client, [username]);
   } catch (e) {
-    console.error('Error encountered while loading user profile', e);
+    console.log('Error encountered while loading user profile', e);
   }
 
   let imageURL;
-  if (account) {
-    let jsonMetadata = account.json_metadata;
-    if (jsonMetadata.length) {
-      jsonMetadata = JSON.parse(jsonMetadata);
-      imageURL = jsonMetadata.profile && jsonMetadata.profile.cover_image;
+  if (account && account.id) {
+    try {
+      let jsonMetadata = account.json_metadata;
+      if (jsonMetadata.length) {
+        jsonMetadata = JSON.parse(jsonMetadata);
+        imageURL = jsonMetadata.profile && jsonMetadata.profile.cover_image;
+      }
+    } catch (e) {
+      console.log('Error encountered while retrieving cover image from json metadata');
     }
   }
-  imageURL = imageURL || defaultImage;
-  return renderExternalImage(imageURL, res, defaultImage, options);
+
+  if (!imageURL) imageURL = defaultCover;
+
+  res.redirect(await getImageLink(imageURL, defaultCover, options));
 });
 
 router.post('/@:username', multipartMiddleware, (req, res, next) => {
