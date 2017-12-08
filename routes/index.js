@@ -77,7 +77,7 @@ router.get('/@:username', async (req, res) => {
     }
   }
 
-  if (!imageURL) imageURL = defaultAvatar;
+  if (!imageURL) imageURL = (account && account.id) ? getAvatarURL(account.id) : defaultAvatar;
 
   res.redirect(await getImageLink(imageURL, defaultAvatar, options));
 });
