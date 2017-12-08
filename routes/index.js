@@ -77,9 +77,11 @@ router.get('/@:username', async (req, res) => {
     }
   }
 
-  if (!imageURL) imageURL = (account && account.id) ? getAvatarURL(account.id) : defaultAvatar;
+  const defaultUrl = getAvatarURL(account.id);
 
-  res.redirect(await getImageLink(imageURL, defaultAvatar, options));
+  if (!imageURL) imageURL = (account && account.id) ? defaultUrl : defaultAvatar;
+
+  res.redirect(await getImageLink(imageURL, defaultUrl, options));
 });
 
 router.get('/@:username/cover', async (req, res) => {
