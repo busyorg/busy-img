@@ -1,11 +1,5 @@
 const getAccountsAsync = (client, usernames) => new Promise((resolve, reject) => {
-  const message = {
-    method: 'get_accounts',
-    jsonrpc: '2.0',
-    params: [usernames]
-  };
-
-  client.send(message, function(err, result) {
+  client.send('get_accounts', [usernames], function(err, result) {
     if (err !== null) reject(err);
     resolve(result);
   });

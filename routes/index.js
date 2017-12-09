@@ -4,7 +4,7 @@ const request = require('request');
 const limiter = require('limiter');
 const multipart = require('connect-multiparty');
 const debug = require('debug')('busy-img');
-const { createClient } = require('steem-mini');
+const { createClient } = require('lightrpc');
 const { getAvatarURL, getAccountsAsync } = require('../helpers');
 
 const client = createClient(process.env.STEEMJS_URL || 'https://api.steemit.com/', { timeout: 1500 });
