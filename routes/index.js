@@ -7,14 +7,14 @@ const debug = require('debug')('busy-img');
 const { createClient } = require('steem-mini');
 const { getAvatarURL, getAccountsAsync } = require('../helpers');
 
-const client = createClient(process.env.STEEMJS_URL || 'https://api.steemit.com/');
+const client = createClient(process.env.STEEMJS_URL || 'https://api.steemit.com/', { timeout: 1500 });
 
 const multipartMiddleware = multipart();
 // 2000 calls an hour because we're on the Bronze plan, usually would be 500
 const cloudinaryRateLimiter = new limiter.RateLimiter(2000, 'hour');
 const router = express.Router();
 
-const defaultAvatar = getAvatarURL(8);
+const defaultAvatar = getAvatarURL('steemconnect');
 const defaultCover =
   'https://res.cloudinary.com/hpiynhbhq/image/upload/v1501527249/transparent_cliw8u.png';
 
@@ -77,7 +77,7 @@ router.get('/@:username', async (req, res) => {
     }
   }
 
-  const defaultUrl = getAvatarURL(account.id);
+  const defaultUrl = getAvatarURL(username);
 
   if (!imageURL) imageURL = (account && account.id) ? defaultUrl : defaultAvatar;
 

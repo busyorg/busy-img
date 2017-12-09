@@ -46,5 +46,3 @@ node_modules
 .tern-port
 yarn.lock
 .serverless
-
-package-lock.json
