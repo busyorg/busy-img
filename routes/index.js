@@ -4,16 +4,19 @@ const request = require('request');
 const limiter = require('limiter');
 const multipart = require('connect-multiparty');
 const debug = require('debug')('busy-img');
+const redis = require('redis');
 const { createClient } = require('lightrpc');
 const { getAvatarURL, getAccountsAsync } = require('../helpers');
 
 const client = createClient(process.env.STEEMJS_URL || 'https://api.steemit.com/', { timeout: 1500 });
+const redisClient = redis.createClient(process.env.REDISCLOUD_URL);
 
 const multipartMiddleware = multipart();
 // 2000 calls an hour because we're on the Bronze plan, usually would be 500
 const cloudinaryRateLimiter = new limiter.RateLimiter(2000, 'hour');
 const router = express.Router();
 
+const EXPIRY_TIME = 10 * 60;
 const defaultAvatar = getAvatarURL('steemconnect');
 const defaultCover =
   'https://res.cloudinary.com/hpiynhbhq/image/upload/v1501527249/transparent_cliw8u.png';
@@ -57,31 +60,42 @@ router.get('/@:username', async (req, res) => {
   const crop = req.query.crop || 'fill';
   const options = { width: width, height: height, crop: crop };
 
-  let account;
-  try {
-    [account] = await getAccountsAsync(client, [username]);
-  } catch (e) {
-    console.error('Error encountered while loading user profile', e);
-  }
+  const avatarKey = `@a/${username}/${width}/${height}/${crop}`;
 
-  let imageURL;
-  if (account && account.id) {
-    try {
-      let jsonMetadata = account.json_metadata;
-      if (jsonMetadata.length) {
-        jsonMetadata = JSON.parse(jsonMetadata);
-        imageURL = jsonMetadata.profile && jsonMetadata.profile.profile_image;
-      }
-    } catch (e) {
-      console.error('Error encountered while retrieving profile image from json metadata');
+  redisClient.get(avatarKey, async (err, reply) => {
+    if (reply) {
+      return res.redirect(reply);
     }
-  }
+    else {
+      let account;
+      try {
+        [account] = await getAccountsAsync(client, [username]);
+      } catch (e) {
+        console.error('Error encountered while loading user profile', e);
+      }
 
-  const defaultUrl = getAvatarURL(username);
+      let imageURL;
+      if (account && account.id) {
+        try {
+          let jsonMetadata = account.json_metadata;
+          if (jsonMetadata.length) {
+            jsonMetadata = JSON.parse(jsonMetadata);
+            imageURL = jsonMetadata.profile && jsonMetadata.profile.profile_image;
+          }
+        } catch (e) {
+          console.error('Error encountered while retrieving profile image from json metadata');
+        }
+      }
 
-  if (!imageURL) imageURL = (account && account.id) ? defaultUrl : defaultAvatar;
+      const defaultUrl = getAvatarURL(username);
 
-  res.redirect(await getImageLink(imageURL, defaultUrl, options));
+      if (!imageURL) imageURL = (account && account.id) ? defaultUrl : defaultAvatar;
+
+      const finalImage = await getImageLink(imageURL, defaultUrl, options);
+      redisClient.setex(avatarKey, EXPIRY_TIME, finalImage);
+      res.redirect(finalImage);
+    }
+  });
 });
 
 router.get('/@:username/cover', async (req, res) => {
