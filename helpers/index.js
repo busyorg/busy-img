@@ -1,3 +1,5 @@
+const md5 = require('md5');
+
 const getAccountsAsync = (client, usernames) => new Promise((resolve, reject) => {
   client.send('get_accounts', [usernames], function(err, result) {
     if (err !== null) reject(err);
@@ -6,7 +8,7 @@ const getAccountsAsync = (client, usernames) => new Promise((resolve, reject) =>
 });
 
 const getAvatarURL = (username) => {
-  switch (username.charCodeAt(0) % 10) {
+  switch (md5(username).charCodeAt(0) % 10) {
     case 0: return 'https://res.cloudinary.com/hpiynhbhq/image/upload/v1506948446/hv6vfwoxxrhbo5hqrr67.png';
     case 1: return 'https://res.cloudinary.com/hpiynhbhq/image/upload/v1506948446/odivdmixxlgcjzu5kwo5.png';
     case 2: return 'https://res.cloudinary.com/hpiynhbhq/image/upload/v1506948446/apwiydegsm9xkl8dwlg6.png';
