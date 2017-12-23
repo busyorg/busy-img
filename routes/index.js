@@ -52,8 +52,6 @@ const getImageLink = (url, defaultUrl, options) => {
     secure: true,
   });
 
-  shortenLink(url);
-
   return new Promise((resolve, reject) => {
     shortenLink(url)
       .then((shortUrl) => {
