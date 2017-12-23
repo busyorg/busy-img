@@ -11,6 +11,8 @@ const { getAvatarURL, getAccountsAsync } = require('../helpers');
 const client = createClient(process.env.STEEMJS_URL || 'https://api.steemit.com/', { timeout: 1500 });
 const redisClient = redis.createClient(process.env.REDISCLOUD_URL);
 
+const { SHORTENER_API_KEY } = process.env;
+
 const multipartMiddleware = multipart();
 // 2000 calls an hour because we're on the Bronze plan, usually would be 500
 const cloudinaryRateLimiter = new limiter.RateLimiter(2000, 'hour');
@@ -20,6 +22,23 @@ const EXPIRY_TIME = 10 * 60;
 const defaultAvatar = getAvatarURL('steemconnect');
 const defaultCover =
   'https://res.cloudinary.com/hpiynhbhq/image/upload/v1501527249/transparent_cliw8u.png';
+
+const shortenLink = (url) => new Promise((resolve, reject) => {
+  if (url.length < 256) return resolve(url);
+  request.post({
+    url: `https://www.googleapis.com/urlshortener/v1/url?key=${SHORTENER_API_KEY}`,
+    method: 'post',
+    json: true,
+    body: {
+      longUrl: url,
+    },
+  }, function(err, resp) {
+    if (err) {
+      return reject(err);
+    }
+    resolve(resp.body.id);
+  })
+});
 
 const getImageLink = (url, defaultUrl, options) => {
   if (typeof url !== 'string') throw new Error('url has to be string');
@@ -33,23 +52,29 @@ const getImageLink = (url, defaultUrl, options) => {
     secure: true,
   });
 
-  return new Promise((resolve, reject) => {
-    request.head({
-      url,
-      timeout: 1000,
-    }, function(err, response) {
-      if (err) {
-        resolve(cloudinary.url(defaultUrl, fetchOptions));
-        return;
-      }
+  shortenLink(url);
 
-      const contentType = response.headers['content-type'] || '';
-      if (response.statusCode == 200 && /image\/./.test(contentType)) {
-        resolve(cloudinary.url(url, fetchOptions));
-      } else {
-        resolve(cloudinary.url(defaultUrl, fetchOptions));
-      }
-    });
+  return new Promise((resolve, reject) => {
+    shortenLink(url)
+      .then((shortUrl) => {
+        request.head({
+          url: shortUrl,
+          timeout: 1000,
+        }, function(err, response) {
+          if (err) {
+            resolve(cloudinary.url(defaultUrl, fetchOptions));
+            return;
+          }
+    
+          const contentType = response.headers['content-type'] || '';
+          if (response.statusCode == 200 && /image\/./.test(contentType)) {
+            resolve(cloudinary.url(shortUrl, fetchOptions));
+          } else {
+            resolve(cloudinary.url(defaultUrl, fetchOptions));
+          }
+        });
+      })
+      .catch(() => resolve(cloudinary.url(defaultUrl, fetchOptions)));
   });
 };
 
