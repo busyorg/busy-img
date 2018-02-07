@@ -50,6 +50,9 @@ const getImageLink = (url, defaultUrl, options) => {
     type: 'fetch',
     sign_url: true,
     secure: true,
+    fetch_format: 'auto',
+    flags: 'lossy',
+    quality: 'auto',
   });
 
   return new Promise((resolve, reject) => {
