@@ -1,15 +1,7 @@
 const express = require('express');
-const path = require('path');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
-const cloudinary = require('cloudinary');
 const cors = require('cors');
-
-if (process.env.SENTRY_DSN) {
-  const raven = require('raven');
-  raven.config(process.env.SENTRY_DSN).install();
-}
-
 const routes = require('./routes/index');
 
 const app = express();
